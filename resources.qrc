@@ -1,0 +1,22 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/eye_shut.png</file>
+        <file>resources/eye_open.png</file>
+        <file>resources/3d_titleback.png</file>
+        <file>resources/3d_back.png</file>
+        <file>resources/axial_titleback.png</file>
+        <file>resources/sagittal_titleback.png</file>
+        <file>resources/coronal_titleback.png</file>
+        <file>resources/closed.png</file>
+        <file>resources/opened.png</file>
+        <file>resources/slicer_logo.png</file>
+        <file>resources/scene0.png</file>
+        <file>resources/scene1.png</file>
+        <file>resources/scene2.png</file>
+        <file>resources/scene3.png</file>
+        <file>resources/scene4.png</file>
+        <file>resources/scene5.png</file>
+        <file>resources/scene6.png</file>
+        <file>resources/scene7.png</file>
+    </qresource>
+</RCC>
