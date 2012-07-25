@@ -4,19 +4,43 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
-TARGET = PETCTLong
-TEMPLATE = app
+DEPENDPATH += . debug release
+INCLUDEPATH += .
+CONFIG += console
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    patient.cpp \
+    segmentation.cpp \
+    reportselectionwidget.cpp \
+    imageseriesselectionwidget.cpp \
+    report.cpp \
+    finding.cpp \
+    imageseries.cpp \
+    study.cpp \
+    dicomdb.cpp \
+    studysliderwidget.cpp \
+    categorybutton.cpp \
+    nodecombobox.cpp \
+    studiestable.cpp \
+    separator.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    patient.h \
+    segmentation.h \
+    reportselectionwidget.h \
+    imageseriesselectionwidget.h \
+    report.h \
+    finding.h \
+    imageseries.h \
+    study.h \
+    dicomdb.h \
+    studysliderwidget.h \
+    dicomdb.h \
+    categorybutton.h \
+    nodecombobox.h \
+    studiestable.h \
+    separator.h
 
-FORMS    += mainwindow.ui
-
-RESOURCES = resources.qrc
+RESOURCES  = resources.qrc

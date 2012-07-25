@@ -20,6 +20,14 @@
 #include <QPixmap>
 #include <QMap>
 
+#include "report.h"
+#include "dicomdb.h"
+#include "categorybutton.h"
+
+#include "studysliderwidget.h"
+#include "reportselectionwidget.h"
+#include "imageseriesselectionwidget.h"
+
 //namespace Ui {
 //class MainWindow;
 //}
@@ -30,133 +38,195 @@ class MainWindow : public QMainWindow
     
 public:
     explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
-
-    enum VIEW_TYPE {
-        CONVENTIONAL,
-        FOUR_UP
-    };
-
-
-signals:
-    void sig_ReportCreated(bool created);
+    ~MainWindow(void);
 
 protected:
-    void InitializeImageViewWidgets();
-    void ChangeImageView(VIEW_TYPE type);
+    QDockWidget* GetDockWidgetModule();
+    QSplitter* GetSplitter();
+    QLabel* GetLabelSlicerLogo();
+    QWidget* GetWidgetTop();
+    QWidget* GetWidgetBottom();
 
-    void InitializeTopPanelElements();
-    void InitializeBottomPanelElements();
-    
-    QFrame* CreateSeparator(QWidget* parent = NULL);
+    StudySliderWidget* GetStudySliderWidget();
+    ReportSelectionWidget* GetReportSelectionWidget();
+    ImageSeriesSelectionWidget* GetImageSeriesSelectionWidget();
+
+    void InitializeMainWindow();
+    void InitializeDICOMDB();
+
+    QList<CategoryButton*> GetListCategoryButtons();
+
     QPushButton* CreateTopPanelButton(const QString& text, QWidget* parent = NULL);
 
 protected slots:
-    void on_TopPanelButtonClicked(bool checked);
-    void on_ShowTopPanelWidget(bool show, QPushButton* button);
-    void on_ReportComboboxImageWidgetActivation(int selectedID);
-    void on_PatientsComboboxFillTable(int selectedID);
-    void on_TableCheckboxClicked(bool checked);
-    void on_TimepointSliderMoved(int value);
-    void on_FindingsComboboxSelectionChanged(int index);
-    void on_DisplayROIButtonClicked();
-    void on_EnableFindingsWidgetContent(bool enable);
-    void on_AddSegmentationToFinding();
-    void on_ShowSegmentationTypeWidget(bool show);
-    void on_AnalysisViewChanged(bool show);
-    void on_BottomPanelTreeWidgetItemPressed(QTreeWidgetItem* item, int column = 0);
+    void SlotChangeStudyInView(int idx);
+
+    void SlotReportCreate(const QString& name);
+    void SlotReportChange(const QString& name);
+    void SlotReportRename(const QString& oldname, const QString& newname);
+    void SlotReportDelete(const QString& name);
+
+    void SlotImageSelectionPatientChanged(const QString& name);
+    void SlotImageSelectionStudySelected(int idx, bool selected);
+
+    Report* GetReportByName(const QString& name);
+
+    void DisconnectReportSelectionSignals();
+    void ConnectReportSelectionSignals();
 
 private:
-    //Ui::MainWindow *ui;
+    DICOMDB* m_DicomDB;
+    QMap<QDateTime,Study*> m_Studies;
+    QList<Report*> m_Reports;
+
+    Report* m_SelectedReport;
+    Patient* m_SelectedPatient;
+
+    QDockWidget* m_DockWidgetModule;
+    QSplitter* m_Splitter;
+    QLabel* m_LabelSlicerLogo;
+
+    QWidget* m_WidgetTop;
+    QWidget* m_WidgetBottom;
+
+    ReportSelectionWidget* m_ReportSelectionWidget;
+    ImageSeriesSelectionWidget* m_ImageSeriesSelectionWidget;
+    StudySliderWidget* m_StudySliderWidget;
+
+    QList<CategoryButton*> m_ListCategoryButtons;
+
+    QList<Study*> m_SelectedStudies;
+
+
+//signals:
+//    void sig_ReportCreated(bool created);
+
+//public slots:
+//     void SlotSetReport(Report* report);
+
+//protected:
+
+//     void CreateConnections();
+
+//     void InitializeImageViewWidgets();
+//     void ChangeImageView(VIEW_TYPE type);
+//     void InitializeTopPanelElements();
+//     void InitializeBottomPanelElements();
+    
+//    QFrame* CreateSeparator(QWidget* parent = NULL);
+//    QPushButton* CreateTopPanelButton(const QString& text, QWidget* parent = NULL);
 
 
 
-    //Central Widget
-    QGridLayout* m_CentralWidgetLayout;
-    QLabel* m_CentralWidgetLabel;
+//protected slots:
+//    void on_TopPanelButtonClicked(bool checked);
+//    void on_ShowTopPanelWidget(bool show, QPushButton* button);
+//    void on_ReportComboboxImageWidgetActivation(int selectedID);
+//    void on_PatientsComboboxFillTable(int selectedID);
+//    void on_TableCheckboxClicked(bool checked);
+//    void on_FindingsComboboxSelectionChanged(int index);
+//    void on_DisplayROIButtonClicked();
+//    void on_EnableFindingsWidgetContent(bool enable);
+//   // void on_AddSegmentationToFinding();
+//    void on_ShowSegmentationTypeWidget(bool show);
+//    void on_AnalysisViewChanged(bool show);
+//    void on_BottomPanelTreeWidgetItemPressed(QTreeWidgetItem* item, int column = 0);
 
-    //Dock Widget
-    QDockWidget* m_DockWidgetLeft;
-    QSplitter* m_DockWidgetLeftSplitter;
-    QWidget* m_ModulePanelTop;
-    QWidget* m_ModulePanelBottom;
+//private:
+//    //Ui::MainWindow *ui;
+//    Report* m_Report;
+//    DICOMDB* m_DicomDB;
 
-
-    //Icons for Buttons
-    QIcon m_ButtonIconOpened;
-    QIcon m_ButtonIconClosed;
-    QIcon m_ButtonIconShow;
-    QIcon m_ButtonIconHide;
-
-
-    //ImageViewWidgets
-    QWidget* m_ImageViewWidget3D;
-    QLabel* m_ImageViewWidget3DTitlebarLabel;
-    QLabel* m_ImageViewWidget3DRenderAreaLabel;
-
-    QWidget* m_ImageViewWidgetAxial;
-    QLabel* m_ImageViewWidgetAxialTitlebarLabel;
-    QLabel* m_ImageViewWidgetAxialRenderAreaLabel;
-
-    QWidget* m_ImageViewWidgetSagittal;
-    QLabel* m_ImageViewWidgetSagittalTitlebarLabel;
-    QLabel* m_ImageViewWidgetSagittalRenderAreaLabel;
-
-    QWidget* m_ImageViewWidgetCoronal;
-    QLabel* m_ImageViewWidgetCoronalTitlebarLabel;
-    QLabel* m_ImageViewWidgetCoronalRenderAreaLabel;
+//    QMap<int,Report*> m_Reports;
+//    QMap<QDateTime,Study*> m_Studies;
 
 
-    //Top Panel Buttons
-    QPushButton* m_HelpButton;
-    QPushButton* m_ReportButton;
-    QPushButton* m_ImagesButton;
-    QPushButton* m_FindingsButton;
-    QPushButton* m_AnalysisButton;
+//    //Central Widget
+//    QGridLayout* m_CentralWidgetLayout;
+//    QLabel* m_CentralWidgetLabel;
 
-    QList<QPushButton*> m_TopPanelButtons;
-    QList<QWidget*> m_TopPanelWidgets;
-    QList<QCheckBox*> m_ImagesTableCheckBoxes;
+//    //Dock Widget
+//    QDockWidget* m_DockWidgetLeft;
+//    QSplitter* m_DockWidgetLeftSplitter;
+//    QWidget* m_ModulePanelTop;
+//    QWidget* m_ModulePanelBottom;
 
 
-    //Bottom Panel Elements
-    QSlider* m_BottomPanelTimepointSlider;
-    QTreeWidget* m_BottomPanelTreeWidget;
-    QLabel* m_BottomPanelCurrentTimepointLabel;
+//    //Icons for Buttons
+//    QIcon m_ButtonIconOpened;
+//    QIcon m_ButtonIconClosed;
+//    QIcon m_ButtonIconShow;
+//    QIcon m_ButtonIconHide;
 
-    //ReportWidget
-    QWidget* m_ReportWidget;
-    QWidget* CreateReportWidget(QWidget* parent = NULL);
-    QComboBox* m_ReportComboBox;
 
-    //ImagesWidget
-    QWidget* m_ImagesWidget;
-    QComboBox* m_ImagesSelectPatientComboBox;
-    QTableWidget* m_ImagesSelectImageTable;
-    QWidget* CreateImagesWidget(QWidget* parent = NULL);
+//    //ImageViewWidgets
+//    QWidget* m_ImageViewWidget3D;
+//    QLabel* m_ImageViewWidget3DTitlebarLabel;
+//    QLabel* m_ImageViewWidget3DRenderAreaLabel;
 
-    //FindingsWidget
-    QWidget* m_FindingsWidget;
-    QComboBox* m_FindingsSelectComboBox;
-    QPushButton* m_FindingsDisplayROIButton;
-    QRadioButton* m_FindingsNewSegmentationRadioButton;
-    QRadioButton* m_FindingsSelectSegmentationRadioButton;
-    QLabel* m_FindingsOrLabel;
-    QWidget* m_FindingsNewSegmentationWidget;
-    QWidget* m_FindingsSelectSegmentationWidget;
-    QPushButton* m_FindingsAddSegmentationButton;
-    QWidget* CreateFindingsWidget(QWidget* parent = NULL);
+//    QWidget* m_ImageViewWidgetAxial;
+//    QLabel* m_ImageViewWidgetAxialTitlebarLabel;
+//    QLabel* m_ImageViewWidgetAxialRenderAreaLabel;
 
-    //AnalysisWidget
-    QWidget* m_AnalysisWidget;
-    QRadioButton* m_AnalysisQualitativeRadioButton;
-    QRadioButton* m_AnalysisQuantitativeRadioButton;
-    QList<QCheckBox*> m_AnalysisCheckboxes;
-    QPushButton* m_AnalysisPrintReportButton;
-    QWidget* CreateAnalysisWidget(QWidget* parent = NULL);
+//    QWidget* m_ImageViewWidgetSagittal;
+//    QLabel* m_ImageViewWidgetSagittalTitlebarLabel;
+//    QLabel* m_ImageViewWidgetSagittalRenderAreaLabel;
 
-    //Dates and Times
-    QStringList m_Dates, m_Times;
+//    QWidget* m_ImageViewWidgetCoronal;
+//    QLabel* m_ImageViewWidgetCoronalTitlebarLabel;
+//    QLabel* m_ImageViewWidgetCoronalRenderAreaLabel;
+
+
+//    //Top Panel Buttons
+//    QPushButton* m_HelpButton;
+//    QPushButton* m_ReportButton;
+//    QPushButton* m_ImagesButton;
+//    QPushButton* m_FindingsButton;
+//    QPushButton* m_AnalysisButton;
+
+//    QList<QPushButton*> m_TopPanelButtons;
+//    QList<QWidget*> m_TopPanelWidgets;
+//    QList<QCheckBox*> m_ImagesTableCheckBoxes;
+
+
+//    //Bottom Panel Elements
+//    StudySliderWidget* m_BottomPanelTimepointSliderWidget;
+//    QTreeWidget* m_BottomPanelTreeWidget;
+
+
+//    //ReportWidget
+//    QWidget* m_ReportWidget;
+//    QWidget* CreateReportWidget(QWidget* parent = NULL);
+//    QComboBox* m_ReportComboBox;
+
+//    //ImagesWidget
+//    QWidget* m_ImagesWidget;
+//    QComboBox* m_ImagesSelectPatientComboBox;
+//    QTableWidget* m_ImagesSelectImageTable;
+//    QWidget* CreateImagesWidget(QWidget* parent = NULL);
+
+//    //FindingsWidget
+//    QWidget* m_FindingsWidget;
+//    QComboBox* m_FindingsSelectComboBox;
+//    QPushButton* m_FindingsDisplayROIButton;
+//    QRadioButton* m_FindingsNewSegmentationRadioButton;
+//    QRadioButton* m_FindingsSelectSegmentationRadioButton;
+//    QLabel* m_FindingsOrLabel;
+//    QWidget* m_FindingsNewSegmentationWidget;
+//    QWidget* m_FindingsSelectSegmentationWidget;
+//    QPushButton* m_FindingsAddSegmentationButton;
+//    QWidget* CreateFindingsWidget(QWidget* parent = NULL);
+
+//    //AnalysisWidget
+//    QWidget* m_AnalysisWidget;
+//    QRadioButton* m_AnalysisQualitativeRadioButton;
+//    QRadioButton* m_AnalysisQuantitativeRadioButton;
+//    QList<QCheckBox*> m_AnalysisCheckboxes;
+//    QPushButton* m_AnalysisPrintReportButton;
+//    QWidget* CreateAnalysisWidget(QWidget* parent = NULL);
+
+//    //Dates and Times
+//    QStringList m_Dates, m_Times;
 
 };
 
