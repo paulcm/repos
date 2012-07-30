@@ -1,13 +1,18 @@
 #include "segmentation.h"
 
-Segmentation::Segmentation(const QString& name, Study* study)
+Segmentation::Segmentation(const QString& name, ImageSeries *imageSeries)
 {
     m_StringSegmentationName = name;
-    m_Study = study;
+    m_ImageSeries = imageSeries;
 }
 
 Segmentation::~Segmentation()
 {
+}
+
+void Segmentation::SetSegmentationName(const QString &name)
+{
+    m_StringSegmentationName = name;
 }
 
 const QString& Segmentation::GetSegmentationName() const
@@ -15,9 +20,9 @@ const QString& Segmentation::GetSegmentationName() const
     return m_StringSegmentationName;
 }
 
-Study* Segmentation::GetStudy() const
+ImageSeries* Segmentation::GetImageSeries()
 {
-    return m_Study;
+    return m_ImageSeries;
 }
 
 

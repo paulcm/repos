@@ -17,10 +17,7 @@ DICOMDB::~DICOMDB()
 void DICOMDB::AddPatient(Patient *patient)
 {
     if(patient)
-    {
-        patient->SetPatientID(m_PatientIDCounter++);
         m_ListPatients.append(patient);
-    }
 }
 
 QList<Patient *> * DICOMDB::GetPatients()
@@ -28,15 +25,12 @@ QList<Patient *> * DICOMDB::GetPatients()
     return &m_ListPatients;
 }
 
-const Patient* DICOMDB::GetPatient(int patientID) const
+Patient* DICOMDB::GetPatient(int idx)
 {
-    for(int i=0; i < m_ListPatients.size(); ++i)
-    {
-        if(m_ListPatients.at(i)->GetPatientID() == patientID)
-            return m_ListPatients.at(i);
-    }
-
-    return NULL;
+    if(idx >= 0 && idx < m_ListPatients.size())
+        return m_ListPatients.value(idx);
+    else
+        return NULL;
 }
 
 

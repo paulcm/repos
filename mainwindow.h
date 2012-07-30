@@ -27,6 +27,9 @@
 #include "studysliderwidget.h"
 #include "reportselectionwidget.h"
 #include "imageseriesselectionwidget.h"
+#include "findingswidget.h"
+
+#include "findingscolormapdialog.h"
 
 //namespace Ui {
 //class MainWindow;
@@ -50,6 +53,9 @@ protected:
     StudySliderWidget* GetStudySliderWidget();
     ReportSelectionWidget* GetReportSelectionWidget();
     ImageSeriesSelectionWidget* GetImageSeriesSelectionWidget();
+    FindingsWidget* GetFindingsWidget();
+
+    FindingsColorMapDialog* GetFindingsColorMapDialog();
 
     void InitializeMainWindow();
     void InitializeDICOMDB();
@@ -66,13 +72,34 @@ protected slots:
     void SlotReportRename(const QString& oldname, const QString& newname);
     void SlotReportDelete(const QString& name);
 
+    void SlotFindingCreate(const QString& name);
+    void SlotFindingChange(const QString& name);
+    void SlotFindingRename(const QString& oldname, const QString& newname);
+    void SlotFindingDelete(const QString& name);
+
+    void SlotSegmentationCreate(const QString& name);
+    void SlotSegmentationChange(const QString& name);
+    void SlotSegmentationRename(const QString& oldname, const QString& newname);
+    void SlotSegmentationDelete(const QString& name);
+
     void SlotImageSelectionPatientChanged(const QString& name);
     void SlotImageSelectionStudySelected(int idx, bool selected);
 
     Report* GetReportByName(const QString& name);
+    Finding* GetFindingByName(const QString& name);
+    Segmentation* GetSegmentationByName(const QString& name);
 
-    void DisconnectReportSelectionSignals();
-    void ConnectReportSelectionSignals();
+    void SetSelectedReport(Report* report);
+    void SetSelectedPatient(Patient* patient, bool reportChanged = false);
+    void SetSelectedStudy(Study* study);
+    void SetSelectedFinding(Finding* finding);
+    void SetSelectedSegmentation(Segmentation* segmentation, bool sliderChanged = false);
+
+    QList<Study*> GetCurrentPatientsSelectedStudies();
+    QList<QString> GetCurrentPatientsSelectedStudyDates();
+
+    bool RemoveCurrentReportsSegmentationsForStudy(Study* study);
+
 
 private:
     DICOMDB* m_DicomDB;
@@ -81,6 +108,9 @@ private:
 
     Report* m_SelectedReport;
     Patient* m_SelectedPatient;
+    Finding* m_SelectedFinding;
+    Segmentation* m_SelectedSegmentation;
+    Study* m_SelectedStudy;
 
     QDockWidget* m_DockWidgetModule;
     QSplitter* m_Splitter;
@@ -91,11 +121,14 @@ private:
 
     ReportSelectionWidget* m_ReportSelectionWidget;
     ImageSeriesSelectionWidget* m_ImageSeriesSelectionWidget;
+    FindingsWidget* m_FindingsWidget;
     StudySliderWidget* m_StudySliderWidget;
+
+    FindingsColorMapDialog* m_FindingsColorMapDialog;
 
     QList<CategoryButton*> m_ListCategoryButtons;
 
-    QList<Study*> m_SelectedStudies;
+    QList<Study*> m_AllSelectedStudies;
 
 
 //signals:

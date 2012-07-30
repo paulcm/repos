@@ -1,7 +1,6 @@
 #include "patient.h"
 
-Patient::Patient(const QString &name, int age) : m_PatientID(-1)
-  ,m_StudyIDCounter(0)
+Patient::Patient(const QString &name, int age)
 {
     m_PatientAge = age;
     m_StringPatientName = name;
@@ -15,23 +14,21 @@ Patient::~Patient()
     m_ListStudies.clear();
 }
 
-void Patient::SetPatientID(int id)
-{
-    m_PatientID = id;
-}
 
 void Patient::AddStudy(Study* study)
 {
     if(study)
     {
-        study->SetStudyID(m_StudyIDCounter++);
+        for(int i=0; i < m_ListStudies.size(); ++i)
+        {
+            if(study->GetStudyDateTime() < m_ListStudies.at(i)->GetStudyDateTime())
+            {
+                m_ListStudies.insert(i,study);
+                return;
+            }
+        }
         m_ListStudies.append(study);
     }
-}
-
-int Patient::GetPatientID() const
-{
-    return m_PatientID;
 }
 
 int Patient::GetPatientAge() const
@@ -49,13 +46,11 @@ QList<Study *>* Patient::GetStudies()
     return &m_ListStudies;
 }
 
-Study *Patient::GetStudy(int studyID)
+Study *Patient::GetStudy(int idx)
 {
-    for(int i=0; i < m_ListStudies.size(); ++i)
-    {
-        if(m_ListStudies.at(i)->GetStudyID() == studyID)
-            return m_ListStudies.at(i);
-    }
+    if(idx >= 0 && idx < m_ListStudies.size())
+        return m_ListStudies.value(idx);
+    else
+        return NULL;
 
-    return NULL;
 }

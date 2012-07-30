@@ -1,66 +1,73 @@
 #include "finding.h"
 
-Finding::Finding(const QString& name) : m_FindingID(-1)
+Finding::Finding(const QString& name)
 {
     m_StringFindingName = name;
 }
 
 Finding::~Finding()
 {
-    for(int i=0; i < m_MapSegmentations.values().size(); ++i)
+    for(int i=0; i < m_ListSegmentations.size(); ++i)
     {
-        delete m_MapSegmentations.values().at(i);
+        delete m_ListSegmentations.value(i);
     }
 
-    m_MapSegmentations.clear();
+    m_ListSegmentations.clear();
 }
 
-void Finding::SetFindingID(int id)
+void Finding::SetFindingName(const QString& name)
 {
-    m_FindingID = id;
+    m_StringFindingName = name;
 }
 
-int Finding::GetFindingID()
-{
-    return m_FindingID;
-}
 
 const QString& Finding::GetFindingName()
 {
     return m_StringFindingName;
 }
 
-QList<Segmentation*> Finding::GetAllSegmentations() const
+
+QList<Segmentation*>* Finding::GetAllSegmentations()
 {
-   return m_MapSegmentations.values();
+    return &m_ListSegmentations;
 }
 
-Segmentation* Finding::GetSegmentation(ImageSeries* series) const
+QList<Segmentation*> Finding::GetSegmentations(const QDateTime &dateTime)
 {
-   return m_MapSegmentations.value(series,NULL);
-}
+    QList<Segmentation*> resultList;
 
-
-bool Finding::AddSegmentation(ImageSeries* series, Segmentation *segmentation)
-{
-    if(m_MapSegmentations.contains(series))
-        return false;
-
-    if(series && segmentation)
+    for(int i=0; i < m_ListSegmentations.size(); ++i)
     {
-        m_MapSegmentations.insert(series,segmentation);
+        Segmentation* tempSegmentation = m_ListSegmentations.value(i);
+
+        if(tempSegmentation->GetImageSeries()->GetImageSeriesDateTime() == dateTime)
+            resultList.append(tempSegmentation);
     }
 
-    return false;
+   return resultList;
 }
 
-bool Finding::RemoveSegmentation(ImageSeries* series)
-{
-    int ret = m_MapSegmentations.remove(series);
 
-    if(ret == 0)
+
+bool Finding::AddSegmentation(Segmentation *segmentation)
+{
+
+    if(m_ListSegmentations.contains(segmentation))
         return false;
-    else
-        return true;
+
+
+    m_ListSegmentations.append(segmentation);
+
+    return true;
+}
+
+bool Finding::RemoveSegmentation(Segmentation* segmentation)
+{
+    if(!m_ListSegmentations.contains(segmentation))
+        return false;
+
+    m_ListSegmentations.removeOne(segmentation);
+
+    return true;
 }
 

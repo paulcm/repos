@@ -13,19 +13,20 @@
 #include "study.h"
 
 
-
 class StudySliderWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit StudySliderWidget(QMap<QDateTime,Study*>* m_StudiesPtr, QWidget *parent = 0);
+    explicit StudySliderWidget(QWidget *parent = 0);
     ~StudySliderWidget(void);
+
+    int GetSliderPosition();
 
 signals:
     void SignalSliderPositionChanged(int idx);
     
 public slots:
-    void UpdateSliderValues();
+    void UpdateValues(int min = 0, int max = 1, int selected = 0, QString label = "");
 
 protected:
     void InitializeWidget();
@@ -35,18 +36,11 @@ protected:
     QLabel* GetLabelInfo();
     QLabel* GetLabelSelectedStudy();
 
-
 private:
     QGridLayout* m_Layout;
     QLabel* m_LabelInfo;
     QLabel* m_LabelSelectedStudy;
     QSlider* m_SliderStudySelector;
-
-
-    QMap<QDateTime,Study*>* m_StudiesPtr;
-
-
-
 
 };
 

@@ -15,13 +15,10 @@ public:
     Study(Modality modality, const QDateTime& dateTime);
     ~Study();
 
-    void SetStudyID(int id);
-
-    int GetStudyID() const;
     const QDateTime& GetStudyDateTime() const;
     const Modality& GetModality() const;
 
-    const ImageSeries* GetImageSeries(ImageSeries::Modality modality) const;
+    ImageSeries* GetImageSeries(ImageSeries::Modality modality) const;
 
     QString GetDateTimeStr() const;
     QString GetDateStr() const;
@@ -30,7 +27,6 @@ public:
 
 
 private:
-    int m_StudyID;
     Modality m_Modality;
     QDateTime m_DateTimeStudy;
     ImageSeries* m_ImageSeriesCT;

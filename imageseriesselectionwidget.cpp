@@ -18,6 +18,15 @@ ImageSeriesSelectionWidget::~ImageSeriesSelectionWidget()
 {
 }
 
+void ImageSeriesSelectionWidget::LockPatientSelection(bool lock)
+{
+    this->GetNodeComboBoxSelectPatient()->setDisabled(lock);
+    if(lock)
+        this->GetNodeComboBoxSelectPatient()->setToolTip("Patient selection has been disabled since there already has been created a finding for the current Patient.\n\nIn order to change the Patient please create a new Report or remove all Findings for the current Patient!");
+    else
+        this->GetNodeComboBoxSelectPatient()->setToolTip("");
+}
+
 void ImageSeriesSelectionWidget::InitializeWidget()
 {
     static bool initialized = false;
@@ -33,16 +42,26 @@ void ImageSeriesSelectionWidget::InitializeWidget()
     }
 }
 
-
-void ImageSeriesSelectionWidget::UpdateStudiesTable(Patient* patient, const QList<Study *>& allSelectedStudies)
+void ImageSeriesSelectionWidget::UndoTableRowCheck(int row)
 {
-    QList<Study*> studiesList;
+    this->GetStudiesTable()->CheckTableRow(row);
+}
 
-    if(patient == NULL)
-        this->GetStudiesTable()->UpdateTable(studiesList, allSelectedStudies);
+void ImageSeriesSelectionWidget::UpdateStudiesTable(QList<Study*>* allPatientStudies, const QList<Study*>& selectedPatientStudies)
+{
+    this->GetStudiesTable()->ClearTableContents();
 
-    else
-        this->GetStudiesTable()->UpdateTable(*patient->GetStudies(), allSelectedStudies);
+    if(allPatientStudies == NULL)
+        return;
+
+    for(int i=0; i < allPatientStudies->size(); ++i)
+    {
+        Study* tempStudy = allPatientStudies->value(i);
+
+        bool selected = selectedPatientStudies.contains(tempStudy);
+
+        this->GetStudiesTable()->InsertTableRow(selected,tempStudy->GetDateStr(),tempStudy->GetTimeStr(),tempStudy->GetModalityStr());
+    }
 }
 
 
@@ -98,10 +117,14 @@ QList<QString>* ImageSeriesSelectionWidget::UpdatePatientNamesList()
     return &m_ListPatientNames;
 }
 
- void ImageSeriesSelectionWidget::UpdatePatientsNamesListNodeComboBox(const QString& selected)
+ void ImageSeriesSelectionWidget::UpdatePatientsNamesListNodeComboBox(Patient* currentPatient)
  {
-    this->UpdatePatientNamesList();
-    this->GetNodeComboBoxSelectPatient()->Update(selected);
+     this->UpdatePatientNamesList();
+
+     if(currentPatient)
+         this->GetNodeComboBoxSelectPatient()->Update(currentPatient->GetName());
+     else
+         this->GetNodeComboBoxSelectPatient()->Update();
  }
 
  StudiesTable* ImageSeriesSelectionWidget::GetStudiesTable()

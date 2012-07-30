@@ -1,14 +1,14 @@
 #include "studysliderwidget.h"
 
-StudySliderWidget::StudySliderWidget(QMap<QDateTime, Study *> *studiesPtr, QWidget *parent) :
+#include <iostream>
+
+StudySliderWidget::StudySliderWidget(QWidget *parent) :
     QWidget(parent)
   ,m_Layout(NULL)
   ,m_LabelInfo(NULL)
   ,m_LabelSelectedStudy(NULL)
   ,m_SliderStudySelector(NULL)
-
 {
-    m_StudiesPtr = studiesPtr;
     this->InitializeWidget();
 }
 
@@ -16,32 +16,21 @@ StudySliderWidget::~StudySliderWidget()
 {
 }
 
-void StudySliderWidget::UpdateSliderValues()
+
+void StudySliderWidget::UpdateValues(int min, int max, int selected, QString label)
 {
-    QList<Study*> tempStudiesList = m_StudiesPtr->values();
+    if(selected < min || selected > max)
+        return;
 
-    if(tempStudiesList.size() > 1)
-    {
-        this->GetSliderStudySelector()->setMaximum(tempStudiesList.size()-1);
-        this->GetSliderStudySelector()->setEnabled(true);
-    }
+    this->GetSliderStudySelector()->setMinimum(min);
+    this->GetSliderStudySelector()->setMaximum(max);
+    this->GetSliderStudySelector()->setValue(selected);
+    this->GetLabelSelectedStudy()->setText(label);
+}
 
-    if(tempStudiesList.size() > 0)
-    {
-        this->GetLabelSelectedStudy()->setText(tempStudiesList.at(m_SliderStudySelector->value())->GetDateTimeStr());
-    }
-
-    if(tempStudiesList.size() <= 1)
-    { 
-        this->GetSliderStudySelector()->setMaximum(1);
-        this->GetSliderStudySelector()->setEnabled(false);
-    }
-
-    if(tempStudiesList.size() == 0)
-    {
-        this->GetLabelSelectedStudy()->setText("");
-    }
-
+int StudySliderWidget::GetSliderPosition()
+{
+    return this->GetSliderStudySelector()->value();
 }
 
 void StudySliderWidget::InitializeWidget()
@@ -102,9 +91,8 @@ QSlider* StudySliderWidget::GetSliderStudySelector()
         m_SliderStudySelector->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
 
         connect(m_SliderStudySelector, SIGNAL(valueChanged(int)), this, SIGNAL(SignalSliderPositionChanged(int)) );
-        connect(m_SliderStudySelector, SIGNAL(sliderReleased()), this, SLOT(UpdateSliderValues()) );
 
-        this->UpdateSliderValues();
+        this->UpdateValues();
     }
 
     return m_SliderStudySelector;
@@ -119,4 +107,3 @@ QGridLayout* StudySliderWidget::GetLayout()
 
     return m_Layout;
 }
-

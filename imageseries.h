@@ -15,8 +15,6 @@ public:
     ImageSeries(Modality modality, const QDateTime& dateTime);
     ~ImageSeries();
 
-    void SetImageSeriesID(int id);
-
     int GetImageSeriesID() const;
     const QDateTime& GetImageSeriesDateTime() const;
 
@@ -28,7 +26,6 @@ public:
     QString GetModalityStr() const;
 
 private:
-    int m_ImageSeriesID;
     Modality m_Modality;
     QDateTime m_DateTimeImageSeries;
 

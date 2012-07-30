@@ -2,20 +2,22 @@
 #define SEGMENTATION_H
 
 #include <QString>
-#include "study.h"
+#include "imageseries.h"
 
 class Segmentation
 {
 public:
-    Segmentation(const QString& name, Study* study);
+    Segmentation(const QString& name, ImageSeries* imageSeries);
     ~Segmentation();
 
     const QString& GetSegmentationName() const;
-    Study* GetStudy() const;
+    ImageSeries* GetImageSeries();
+
+    void SetSegmentationName(const QString& name);
 
 private:
     QString m_StringSegmentationName;
-    Study* m_Study;
+    ImageSeries* m_ImageSeries;
 };
 
 #endif // SEGMENTATION_H

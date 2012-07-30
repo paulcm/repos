@@ -12,6 +12,11 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
+  ,m_SelectedReport(NULL)
+  ,m_SelectedPatient(NULL)
+  ,m_SelectedFinding(NULL)
+  ,m_SelectedSegmentation(NULL)
+  ,m_SelectedStudy(NULL)
   ,m_DockWidgetModule(NULL)
   ,m_Splitter(NULL)
   ,m_LabelSlicerLogo(NULL)
@@ -19,7 +24,9 @@ MainWindow::MainWindow(QWidget *parent) :
   ,m_WidgetBottom(NULL)
   ,m_ReportSelectionWidget(NULL)
   ,m_ImageSeriesSelectionWidget(NULL)
+  ,m_FindingsWidget(NULL)
   ,m_StudySliderWidget(NULL)
+  ,m_FindingsColorMapDialog(NULL)
 {
     this->setStyleSheet("background-color:#fff");
 
@@ -40,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->InitializeMainWindow();
 
 
-    this->showMaximized();
+    //this->showMaximized();
 }
 
 MainWindow::~MainWindow()
@@ -168,6 +175,8 @@ QWidget* MainWindow::GetWidgetTop()
         m_WidgetTop->layout()->addWidget(this->GetImageSeriesSelectionWidget());
 
         m_WidgetTop->layout()->addWidget(this->GetListCategoryButtons().at(2));
+        m_WidgetTop->layout()->addWidget(this->GetFindingsWidget());
+
         m_WidgetTop->layout()->addWidget(this->GetListCategoryButtons().at(3));
 
         m_WidgetTop->layout()->addItem(new QSpacerItem(20,1,QSizePolicy::Minimum,QSizePolicy::Expanding));
@@ -193,7 +202,7 @@ StudySliderWidget* MainWindow::GetStudySliderWidget()
 {
     if(m_StudySliderWidget == NULL)
     {
-        m_StudySliderWidget = new StudySliderWidget(&m_Studies,this);
+        m_StudySliderWidget = new StudySliderWidget(this);
 
         connect(m_StudySliderWidget, SIGNAL(SignalSliderPositionChanged(int)), this, SLOT(SlotChangeStudyInView(int)));
     }
@@ -201,13 +210,28 @@ StudySliderWidget* MainWindow::GetStudySliderWidget()
     return m_StudySliderWidget;
 }
 
+
+FindingsColorMapDialog* MainWindow::GetFindingsColorMapDialog()
+{
+    if(m_FindingsColorMapDialog == NULL)
+    {
+        m_FindingsColorMapDialog = new FindingsColorMapDialog(this);
+    }
+
+    return m_FindingsColorMapDialog;
+}
+
+
 ReportSelectionWidget* MainWindow::GetReportSelectionWidget()
 {
     if(m_ReportSelectionWidget == NULL)
     {
         m_ReportSelectionWidget = new ReportSelectionWidget(&m_Reports,this);
 
-        this->ConnectReportSelectionSignals();
+        connect(m_ReportSelectionWidget, SIGNAL(SignalCreateNewReport(QString)), this, SLOT(SlotReportCreate(QString)) );
+        connect(m_ReportSelectionWidget, SIGNAL(SignalChangeReport(QString)), this, SLOT(SlotReportChange(QString)) );
+        connect(m_ReportSelectionWidget, SIGNAL(SignalRenameReport(QString,QString)), this, SLOT(SlotReportRename(QString,QString)) );
+        connect(m_ReportSelectionWidget, SIGNAL(SignalDeleteReport(QString)), this, SLOT(SlotReportDelete(QString)) );
 
     }
     return m_ReportSelectionWidget;
@@ -221,57 +245,330 @@ ImageSeriesSelectionWidget* MainWindow::GetImageSeriesSelectionWidget()
 
         connect(m_ImageSeriesSelectionWidget, SIGNAL(SignalPatientChanged(QString)), this, SLOT(SlotImageSelectionPatientChanged(QString)) );
         connect(m_ImageSeriesSelectionWidget, SIGNAL(SignalStudySelected(int,bool)), this, SLOT(SlotImageSelectionStudySelected(int,bool)) );
+
     }
 
     return m_ImageSeriesSelectionWidget;
 }
 
-void MainWindow::SlotImageSelectionPatientChanged(const QString& name)
+FindingsWidget* MainWindow::GetFindingsWidget()
 {
-    Patient* tempPat = m_DicomDB->GetPatientByName(name);
+    if(m_FindingsWidget == NULL)
+    {
+        std::cout << "Try to instanciate Findings Widget" << std::endl;
+        if(m_SelectedReport == NULL)
+            m_FindingsWidget = new FindingsWidget(NULL, this);
+        else
+            m_FindingsWidget = new FindingsWidget(m_SelectedReport->GetFindings(),this);
 
-    if(tempPat != m_SelectedPatient)
-        this->GetImageSeriesSelectionWidget()->UpdateStudiesTable(tempPat,m_SelectedStudies);
+        connect(m_FindingsWidget, SIGNAL(SignalCreateNewFinding(QString)), this, SLOT(SlotFindingCreate(QString)) );
+        connect(m_FindingsWidget, SIGNAL(SignalChangeFinding(QString)), this, SLOT(SlotFindingChange(QString)) );
+        connect(m_FindingsWidget, SIGNAL(SignalRenameFinding(QString,QString)), this, SLOT(SlotFindingRename(QString,QString)) );
+        connect(m_FindingsWidget, SIGNAL(SignalDeleteFinding(QString)), this, SLOT(SlotFindingDelete(QString)) );
 
-    m_SelectedPatient = tempPat;
+        connect(m_FindingsWidget, SIGNAL(SignalCreateNewSegmentation(QString)), this, SLOT(SlotSegmentationCreate(QString)) );
+        connect(m_FindingsWidget, SIGNAL(SignalChangeSegmentation(QString)), this, SLOT(SlotSegmentationChange(QString)) );
+        connect(m_FindingsWidget, SIGNAL(SignalRenameSegmentation(QString,QString)), this, SLOT(SlotSegmentationRename(QString,QString)) );
+        connect(m_FindingsWidget, SIGNAL(SignalDeleteSegmentation(QString)), this, SLOT(SlotSegmentationDelete(QString)) );
+
+    }
+
+    return m_FindingsWidget;
 }
 
+
+void MainWindow::SlotImageSelectionPatientChanged(const QString& name)
+{
+    Patient* tempPatient = m_DicomDB->GetPatientByName(name);
+
+    if(tempPatient == m_SelectedPatient)
+        return;
+
+    this->SetSelectedPatient(tempPatient);
+
+}
+
+QList<Study*> MainWindow::GetCurrentPatientsSelectedStudies()
+{
+    QList<Study*> resultList;
+
+    if(m_SelectedPatient != NULL)
+    {
+        for(int i=0; i < m_SelectedPatient->GetStudies()->size();++i)
+        {
+            if(m_AllSelectedStudies.contains(m_SelectedPatient->GetStudies()->at(i)))
+            {
+                resultList.append(m_SelectedPatient->GetStudies()->value(i));
+            }
+        }
+    }
+
+    return resultList;
+}
+
+QList<QString> MainWindow::GetCurrentPatientsSelectedStudyDates()
+{
+    QList<Study*> tempStudyList = this->GetCurrentPatientsSelectedStudies();
+    QList<QString> resultList;
+
+    for(int i=0; i < tempStudyList.size(); ++i)
+    {
+        resultList.append(tempStudyList.at(i)->GetDateTimeStr());
+    }
+
+    return resultList;
+}
+
+bool MainWindow::RemoveCurrentReportsSegmentationsForStudy(Study* study)
+{
+    bool triggeredOnce = false;
+    int ret = QMessageBox::Cancel;
+
+    if(m_SelectedReport && m_SelectedPatient && m_SelectedFinding && m_SelectedStudy)
+    {
+        for(int i=0; i < m_SelectedReport->GetFindings()->size(); ++i)
+        {
+            Finding* tempFinding = m_SelectedReport->GetFinding(i);
+
+            for(int j=0; j < tempFinding->GetAllSegmentations()->size(); ++j)
+            {
+                Segmentation* tempSegmentation = tempFinding->GetAllSegmentations()->value(j);
+
+                if(tempSegmentation->GetImageSeries() == study->GetImageSeries(ImageSeries::PET))
+                {
+                    if(triggeredOnce == false)
+                    {
+                        ret = QMessageBox::warning(NULL,"Study selection","All Segmentations belonging to this study will be removed from the Findings",QMessageBox::Ok,QMessageBox::Cancel);
+                        triggeredOnce = true;
+                    }
+                    if(ret == QMessageBox::Ok)
+                    {
+                        QList<Segmentation*> tempCurrentFindingSegmentations = m_SelectedFinding->GetSegmentations(m_SelectedStudy->GetStudyDateTime());
+                        Segmentation* nextSegmentation = NULL;
+                        if(tempCurrentFindingSegmentations.contains(tempSegmentation))
+                        {
+                           int idx = tempCurrentFindingSegmentations.indexOf(tempSegmentation);
+                           if(tempCurrentFindingSegmentations.size() == 2)
+                               nextSegmentation = tempCurrentFindingSegmentations.value(0);
+                           else
+                               nextSegmentation = tempCurrentFindingSegmentations.value(--idx);
+
+                        }
+                        tempFinding->RemoveSegmentation(tempSegmentation);
+
+                        if(tempCurrentFindingSegmentations.contains(tempSegmentation))
+                            this->SetSelectedSegmentation(nextSegmentation);
+                    }
+                    else
+                        return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
 
 void MainWindow::SlotImageSelectionStudySelected(int idx, bool selected)
 {
-    Study* tempStudy;
+    disconnect(this->GetStudySliderWidget(), SIGNAL(SignalSliderPositionChanged(int)), this, SLOT(SlotChangeStudyInView(int)));
 
-    if(selected && m_SelectedPatient != NULL)
+    QList<Study*> selectedPatientStudies = this->GetCurrentPatientsSelectedStudies();
+
+    Study* tempStudy = m_SelectedPatient->GetStudy(idx);
+    int oldidx = selectedPatientStudies.indexOf(tempStudy);
+
+    if(!selected)
     {
-        tempStudy = m_SelectedPatient->GetStudy(idx);
+        bool cont = this->RemoveCurrentReportsSegmentationsForStudy(tempStudy);
 
-        if(!m_SelectedStudies.contains(tempStudy))
-            m_SelectedStudies.append(tempStudy);
+        if(!cont)
+        {
+            this->GetImageSeriesSelectionWidget()->UndoTableRowCheck(idx);
+            connect(this->GetStudySliderWidget(), SIGNAL(SignalSliderPositionChanged(int)), this, SLOT(SlotChangeStudyInView(int)));
+
+            return;
+        }
+
+        m_AllSelectedStudies.removeOne(tempStudy);
     }
-    else if(!selected && m_SelectedPatient != NULL)
+    else
+        m_AllSelectedStudies.append(tempStudy);
+
+
+    selectedPatientStudies = this->GetCurrentPatientsSelectedStudies();
+
+    if(selected)
+        this->SetSelectedStudy(tempStudy);
+    else
     {
-        tempStudy = m_SelectedPatient->GetStudy(idx);
-
-        if(m_SelectedStudies.contains(tempStudy))
-            m_SelectedStudies.removeOne(tempStudy);
+        if(selectedPatientStudies.empty())
+        {
+            this->SetSelectedStudy(NULL);
+            this->GetStudySliderWidget()->UpdateValues();
+        }
+        else if(selectedPatientStudies.size() == 1)
+        {
+            this->SetSelectedStudy(selectedPatientStudies.value(0));
+            this->GetStudySliderWidget()->UpdateValues(0,1,0,selectedPatientStudies.at(0)->GetDateTimeStr());
+        }
+        else
+        {
+            this->SetSelectedStudy(selectedPatientStudies.value(--oldidx));
+            this->GetStudySliderWidget()->UpdateValues(0,selectedPatientStudies.size()-1,oldidx,selectedPatientStudies.at(oldidx)->GetDateTimeStr());
+        }
     }
+
+
+    connect(this->GetStudySliderWidget(), SIGNAL(SignalSliderPositionChanged(int)), this, SLOT(SlotChangeStudyInView(int)));
 }
+
+
 
 void MainWindow::SlotChangeStudyInView(int idx)
 {
-    std::cout << m_Studies.values().at(idx)->GetStudyID() << std::endl;
+    this->SetSelectedStudy(this->GetCurrentPatientsSelectedStudies().value(idx));
 }
 
+
+
+void MainWindow::SetSelectedReport(Report* report)
+{
+    if(report == m_SelectedReport)
+        return;
+
+    m_SelectedReport = report;
+
+    if(m_SelectedReport)
+    {
+        this->SetSelectedPatient(m_SelectedReport->GetPatient(),true);
+        this->GetFindingsWidget()->SetFindings(m_SelectedReport->GetFindings());
+    }
+    else
+    {
+        this->SetSelectedPatient(NULL,true);
+        this->GetFindingsWidget()->SetFindings(NULL);
+    }
+
+        this->GetReportSelectionWidget()->UpdateReportSelectorNodeComboBox(m_SelectedReport);
+}
+
+void MainWindow::SetSelectedPatient(Patient* patient, bool reportChanged)
+{
+
+    if(patient == m_SelectedPatient && !reportChanged)
+        return;
+
+    m_SelectedPatient = patient;
+
+    if(m_SelectedReport)
+    {
+        m_SelectedReport->SetPatient(m_SelectedPatient);
+
+        if(m_SelectedReport->GetFindings()->isEmpty())
+            this->GetImageSeriesSelectionWidget()->LockPatientSelection(false);
+        else
+            this->GetImageSeriesSelectionWidget()->LockPatientSelection(true);
+    }
+
+
+    if(m_SelectedPatient)
+    {
+        this->SetSelectedFinding(m_SelectedReport->GetFinding(0));
+        this->GetImageSeriesSelectionWidget()->UpdateStudiesTable(m_SelectedPatient->GetStudies(),this->GetCurrentPatientsSelectedStudies());
+
+        disconnect(this->GetStudySliderWidget(), SIGNAL(SignalSliderPositionChanged(int)), this, SLOT(SlotChangeStudyInView(int)));
+        this->SetSelectedStudy(m_SelectedPatient->GetStudy(0));
+        connect(this->GetStudySliderWidget(), SIGNAL(SignalSliderPositionChanged(int)), this, SLOT(SlotChangeStudyInView(int)));
+
+    }
+    else
+    {
+        this->SetSelectedFinding(NULL);
+        QList<Study*> emptyListSelected;
+        this->GetImageSeriesSelectionWidget()->UpdateStudiesTable(NULL,emptyListSelected);
+
+        disconnect(this->GetStudySliderWidget(), SIGNAL(SignalSliderPositionChanged(int)), this, SLOT(SlotChangeStudyInView(int)));
+        this->SetSelectedStudy(NULL);
+        connect(this->GetStudySliderWidget(), SIGNAL(SignalSliderPositionChanged(int)), this, SLOT(SlotChangeStudyInView(int)));
+
+    }
+
+
+    this->GetImageSeriesSelectionWidget()->UpdatePatientsNamesListNodeComboBox(m_SelectedPatient);
+
+}
+
+void MainWindow::SetSelectedStudy(Study* study)
+{
+    if(study == m_SelectedStudy)
+        return;
+
+    m_SelectedStudy = study;
+
+    QList<Study*> tempPatientSelectedStudies = this->GetCurrentPatientsSelectedStudies();
+    int idx = tempPatientSelectedStudies.indexOf(study);
+
+    disconnect(this->GetStudySliderWidget(), SIGNAL(SignalSliderPositionChanged(int)), this, SLOT(SlotChangeStudyInView(int)));
+
+    this->SetSelectedSegmentation(m_SelectedSegmentation);
+
+    if(m_SelectedStudy)
+        this->GetStudySliderWidget()->UpdateValues(0,tempPatientSelectedStudies.size()-1,idx,study->GetDateTimeStr());
+
+    else
+        this->GetStudySliderWidget()->UpdateValues();
+
+
+    connect(this->GetStudySliderWidget(), SIGNAL(SignalSliderPositionChanged(int)), this, SLOT(SlotChangeStudyInView(int)));
+
+}
+
+void MainWindow::SetSelectedFinding(Finding* finding)
+{
+    if(finding == m_SelectedFinding)
+        return;
+
+    m_SelectedFinding = finding;
+
+    if(m_SelectedFinding && ! m_SelectedFinding->GetSegmentations(m_SelectedStudy->GetStudyDateTime()).isEmpty())
+        this->SetSelectedSegmentation(m_SelectedFinding->GetSegmentations(m_SelectedStudy->GetStudyDateTime()).value(0));
+    else
+        this->SetSelectedSegmentation(NULL);
+
+    this->GetFindingsWidget()->UpdateFindingsNameListNodeComboBox(m_SelectedFinding);
+
+}
+
+void MainWindow::SetSelectedSegmentation(Segmentation* segmentation, bool sliderChanged)
+{
+    if(segmentation == m_SelectedSegmentation && sliderChanged)
+        return;
+
+    m_SelectedSegmentation = segmentation;
+
+    if(m_SelectedStudy && m_SelectedFinding)
+    {
+        if(m_SelectedFinding->GetSegmentations(m_SelectedStudy->GetStudyDateTime()).isEmpty())
+            this->GetFindingsWidget()->UpdateSegmentationNameListNodeComboBox(NULL, NULL);
+        else
+            this->GetFindingsWidget()->UpdateSegmentationNameListNodeComboBox(m_SelectedFinding,m_SelectedFinding->GetSegmentations(m_SelectedStudy->GetStudyDateTime()).value(0));
+    }
+}
+
+
+
+///// REPORT SLOTS
 
 void MainWindow::SlotReportCreate(const QString& name)
 {
     Report* report = new Report(name);
-    report->SetReportID(m_Reports.size());
-
 
     m_Reports.prepend(report);
 
-    m_SelectedReport = report;
+    this->SetSelectedReport(report);
+
+
 
     this->GetReportSelectionWidget()->UpdateReportSelectorNodeComboBox(m_SelectedReport);
 
@@ -283,9 +580,10 @@ void MainWindow::SlotReportCreate(const QString& name)
 
 void MainWindow::SlotReportChange(const QString& name)
 {
-    m_SelectedReport = this->GetReportByName(name);
+    Report* tempReport = this->GetReportByName(name);
 
-    this->GetReportSelectionWidget()->UpdateReportSelectorNodeComboBox(m_SelectedReport);
+
+    this->SetSelectedReport(tempReport);
 
     if(m_SelectedReport)
        std::cout << "Currently selected Report: " << m_SelectedReport->GetReportName().toStdString() << std::endl;
@@ -296,9 +594,13 @@ void MainWindow::SlotReportChange(const QString& name)
 void MainWindow::SlotReportRename(const QString& oldname, const QString& newname)
 {
     Report* tempReport = this->GetReportByName(oldname);
+
+    if(tempReport == NULL)
+        return;
+
     tempReport->SetReportName(newname);
 
-    m_SelectedReport = tempReport;
+    this->SetSelectedReport(tempReport);
 
     this->GetReportSelectionWidget()->UpdateReportSelectorNodeComboBox(m_SelectedReport);
 
@@ -320,11 +622,11 @@ void MainWindow::SlotReportDelete(const QString& name)
     }
 
     if(idx > 0)
-        m_SelectedReport = m_Reports.value(idx-1);
+        this->SetSelectedReport(m_Reports.value(idx-1));
     else if(idx == 0 && !m_Reports.isEmpty())
-        m_SelectedReport = m_Reports.value(0);
+        this->SetSelectedReport(m_Reports.value(0));
     else
-        m_SelectedReport = NULL;
+        this->SetSelectedReport(NULL);
 
     this->GetReportSelectionWidget()->UpdateReportSelectorNodeComboBox(m_SelectedReport);
 
@@ -345,24 +647,231 @@ Report* MainWindow::GetReportByName(const QString& name)
     return NULL;
 }
 
-void MainWindow::DisconnectReportSelectionSignals()
+
+///// FINDING SLOTS
+
+void MainWindow::SlotFindingCreate(const QString& name)
 {
-    disconnect(m_ReportSelectionWidget, SIGNAL(SignalCreateNewReport(QString)), this, SLOT(SlotReportCreate(QString)) );
-    disconnect(m_ReportSelectionWidget, SIGNAL(SignalChangeReport(QString)), this, SLOT(SlotReportChange(QString)) );
-    disconnect(m_ReportSelectionWidget, SIGNAL(SignalRenameReport(QString,QString)), this, SLOT(SlotReportRename(QString,QString)) );
-    disconnect(m_ReportSelectionWidget, SIGNAL(SignalDeleteReport(QString)), this, SLOT(SlotReportDelete(QString)) );
+    if(m_SelectedReport == NULL)
+    {
+        QMessageBox::warning(NULL,"Create Finding","A Report must be selected in order to create a new Finding");
+        return;
+    }
+
+    if(m_SelectedStudy == NULL)
+    {
+        QMessageBox::warning(NULL,"Create Finding","A Study must be selected in order to create a new Finding");
+        return;
+    }
+
+    this->GetFindingsColorMapDialog()->SetApplied(false);
+    this->GetFindingsColorMapDialog()->exec();
+
+    if(this->GetFindingsColorMapDialog()->GetApplied())
+    {
+
+    Finding* finding = new Finding(name);
+    m_SelectedReport->AddFinding(finding);
+    this->GetImageSeriesSelectionWidget()->LockPatientSelection(true);
+
+    this->SetSelectedFinding(finding);
+
+    }
+    if(m_SelectedFinding)
+       std::cout << "Currently selected Finding: " << m_SelectedFinding->GetFindingName().toStdString() << std::endl;
+    else
+        std::cout << "No currently selected Finding" << std::endl;
+ }
+
+void MainWindow::SlotFindingChange(const QString& name)
+{
+    Finding* tempFinding = this->GetFindingByName(name);
+
+    this->SetSelectedFinding(tempFinding);
+
+    if(m_SelectedFinding)
+       std::cout << "Currently selected Finding: " << m_SelectedFinding->GetFindingName().toStdString() << std::endl;
+    else
+        std::cout << "No currently selected Finding" << std::endl;
 }
 
-void MainWindow::ConnectReportSelectionSignals()
+void MainWindow::SlotFindingRename(const QString& oldname, const QString& newname)
 {
-    connect(m_ReportSelectionWidget, SIGNAL(SignalCreateNewReport(QString)), this, SLOT(SlotReportCreate(QString)) );
-    connect(m_ReportSelectionWidget, SIGNAL(SignalChangeReport(QString)), this, SLOT(SlotReportChange(QString)) );
-    connect(m_ReportSelectionWidget, SIGNAL(SignalRenameReport(QString,QString)), this, SLOT(SlotReportRename(QString,QString)) );
-    connect(m_ReportSelectionWidget, SIGNAL(SignalDeleteReport(QString)), this, SLOT(SlotReportDelete(QString)) );
+    Finding* tempFinding = this->GetFindingByName(oldname);
+
+    if(m_SelectedReport == NULL || tempFinding == NULL)
+        return;
+
+    tempFinding->SetFindingName(newname);
+
+    this->SetSelectedFinding(tempFinding);
+
+
+    if(m_SelectedFinding)
+       std::cout << "Currently selected Finding: " << m_SelectedFinding->GetFindingName().toStdString() << std::endl;
+    else
+        std::cout << "No currently selected Finding" << std::endl;
+}
+
+void MainWindow::SlotFindingDelete(const QString& name)
+{
+    Finding* tempFinding = this->GetFindingByName(name);
+
+    if(m_SelectedReport == NULL || tempFinding == NULL)
+        return;
+
+    int idx = m_SelectedReport->GetFindings()->indexOf(tempFinding);
+
+    if(tempFinding != NULL)
+    {
+        m_SelectedReport->GetFindings()->removeOne(tempFinding);
+        delete tempFinding;
+
+        if(m_SelectedReport->GetFindings()->isEmpty())
+            this->GetImageSeriesSelectionWidget()->LockPatientSelection(false);
+    }
+
+    if(idx > 0)
+        this->SetSelectedFinding(m_SelectedReport->GetFindings()->value(idx-1));
+    else if(idx == 0 && !m_SelectedReport->GetFindings()->isEmpty())
+        this->SetSelectedFinding(m_SelectedReport->GetFindings()->value(0));
+    else
+        this->SetSelectedFinding(NULL);
+
+
+    if(m_SelectedFinding)
+       std::cout << "Currently selected Finding: " << m_SelectedFinding->GetFindingName().toStdString() << std::endl;
+    else
+        std::cout << "No currently selected Finding" << std::endl;
+}
+
+Finding* MainWindow::GetFindingByName(const QString& name)
+{
+    if(m_SelectedReport == NULL)
+        return NULL;
+
+    QList<Finding*>* findingsPtr = m_SelectedReport->GetFindings();
+
+    if(findingsPtr == NULL)
+        return NULL;
+
+    for(int i=0; i < findingsPtr->size(); ++i)
+    {
+        if(findingsPtr->at(i)->GetFindingName().compare(name) == 0)
+            return findingsPtr->value(i);
+    }
+
+    return NULL;
 }
 
 
+///// SEGMENTATION SLOTS
 
+void MainWindow::SlotSegmentationCreate(const QString& name)
+{
+    if(m_SelectedReport == NULL)
+    {
+        QMessageBox::warning(NULL,"Create Segmentation","A Report must be selected in order to create a new Segmentation");
+        return;
+    }
+
+    if(m_SelectedFinding == NULL)
+    {
+        QMessageBox::warning(NULL,"Create Segmentation","A Finding must be selected in order to create a new Segmentation");
+        return;
+    }
+
+    if(m_SelectedStudy == NULL)
+    {
+        QMessageBox::warning(NULL,"Create Segmentation","A Study must be selected in order to create a new Segmentation");
+        return;
+    }
+
+    std::cout << "Creating new Segmentation" << std::endl;
+    Segmentation* segmentation = new Segmentation(name,m_SelectedStudy->GetImageSeries(ImageSeries::PET));
+    m_SelectedFinding->AddSegmentation(segmentation);
+
+    this->SetSelectedSegmentation(segmentation);
+
+    if(m_SelectedSegmentation)
+       std::cout << "Currently selected Segmentation: " << m_SelectedSegmentation->GetSegmentationName().toStdString() << std::endl;
+    else
+        std::cout << "No currently selected Segmentation" << std::endl;
+ }
+
+void MainWindow::SlotSegmentationChange(const QString& name)
+{
+    Segmentation* tempSeg = this->GetSegmentationByName(name);
+
+    this->SetSelectedSegmentation(tempSeg);
+
+    if(m_SelectedSegmentation)
+       std::cout << "Currently selected Segmentation: " << m_SelectedSegmentation->GetSegmentationName().toStdString() << std::endl;
+    else
+        std::cout << "No currently selected Segmentation" << std::endl;
+}
+
+void MainWindow::SlotSegmentationRename(const QString& oldname, const QString& newname)
+{
+    Segmentation* tempSeg = this->GetSegmentationByName(oldname);
+
+    if(m_SelectedReport == NULL || m_SelectedFinding == NULL || tempSeg == NULL)
+        return;
+
+    tempSeg->SetSegmentationName(newname);
+
+    this->SetSelectedSegmentation(tempSeg);
+
+    if(m_SelectedSegmentation)
+       std::cout << "Currently selected Segmentation: " << m_SelectedSegmentation->GetSegmentationName().toStdString() << std::endl;
+    else
+        std::cout << "No currently selected Segmentation" << std::endl;
+}
+
+void MainWindow::SlotSegmentationDelete(const QString& name)
+{
+    Segmentation* tempSeg = this->GetSegmentationByName(name);
+
+    if(m_SelectedReport == NULL || m_SelectedFinding == NULL || tempSeg == NULL)
+        return;
+
+    int idx = m_SelectedFinding->GetAllSegmentations()->indexOf(tempSeg);
+
+    if(tempSeg != NULL)
+    {
+        m_SelectedFinding->RemoveSegmentation(tempSeg);
+        delete tempSeg;
+    }
+
+    if(idx > 0)
+        this->SetSelectedSegmentation(m_SelectedFinding->GetAllSegmentations()->value(idx-1));
+    else if(idx == 0 && !m_SelectedFinding->GetAllSegmentations()->isEmpty())
+        this->SetSelectedSegmentation(m_SelectedFinding->GetAllSegmentations()->value(0));
+    else
+        this->SetSelectedSegmentation(NULL);
+
+
+    if(m_SelectedSegmentation)
+       std::cout << "Currently selected Segmentation: " << m_SelectedSegmentation->GetSegmentationName().toStdString() << std::endl;
+    else
+        std::cout << "No currently selected Segmentation" << std::endl;
+}
+
+Segmentation* MainWindow::GetSegmentationByName(const QString& name)
+{
+    if(m_SelectedReport == NULL || m_SelectedFinding == NULL)
+        return NULL;
+
+    QList<Segmentation*>* segmentations = m_SelectedFinding->GetAllSegmentations();
+
+    for(int i=0; i < segmentations->size(); ++i)
+    {
+        if(segmentations->at(i)->GetSegmentationName().compare(name) == 0)
+            return segmentations->value(i);
+    }
+
+    return NULL;
+}
 
 
 

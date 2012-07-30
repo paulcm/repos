@@ -24,7 +24,9 @@ SOURCES += main.cpp\
     categorybutton.cpp \
     nodecombobox.cpp \
     studiestable.cpp \
-    separator.cpp
+    separator.cpp \
+    findingswidget.cpp \
+    findingscolormapdialog.cpp
 
 HEADERS  += mainwindow.h \
     patient.h \
@@ -41,6 +43,8 @@ HEADERS  += mainwindow.h \
     categorybutton.h \
     nodecombobox.h \
     studiestable.h \
-    separator.h
+    separator.h \
+    findingswidget.h \
+    findingscolormapdialog.h
 
 RESOURCES  = resources.qrc

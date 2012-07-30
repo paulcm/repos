@@ -14,8 +14,10 @@ public:
     explicit StudiesTable(QWidget *parent = 0);
     ~StudiesTable();
 
+    void InsertTableRow(bool selected, const QString& date, const QString& time, const QString& modality);
+    void ClearTableContents();
 
-    void UpdateTable(QList<Study*> studies, const QList<Study*>& allSelectedStudies);
+    void CheckTableRow(int row);
 
 signals:
     void SignalStudySelected(int idx, bool selected);
@@ -23,14 +25,13 @@ signals:
 public slots:
 
 
-protected:
-    void ClearTableContents();
+
+
 
 protected slots:
-    void SlotTableCheckBoxClicked(bool toggled);
+    void SlotCellChanged(int row, int column);
 
-private:
-    QList<QCheckBox*> m_ListTableCheckBoxes;
+
 };
 
 #endif // STUDIESTABLE_H

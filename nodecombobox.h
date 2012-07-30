@@ -26,9 +26,9 @@ public:
     static QString NONE_VALUE;
 
 signals:
-    void SignalCreate();
+    void SignalCreate(const QString& name);
     void SignalSelected(const QString& name);
-    void SignalRename(const QString& name);
+    void SignalRename(const QString& oldname, const QString& newname);
     void SignalDelete(const QString& name);
     
 public slots:
@@ -39,6 +39,7 @@ protected slots:
 
 protected:
     bool IsSelectedEntryNode(const QString& name);
+    bool CheckNameAlreadyExists(const QString& name, bool showWarning);
 
 
 private:

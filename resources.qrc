@@ -18,5 +18,6 @@
         <file>resources/scene5.png</file>
         <file>resources/scene6.png</file>
         <file>resources/scene7.png</file>
+        <file>resources/colormap.png</file>
     </qresource>
 </RCC>

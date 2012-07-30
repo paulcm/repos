@@ -18,6 +18,7 @@ StudiesTable::StudiesTable(QWidget *parent) :
 
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
 
+    this->connect(this, SIGNAL(cellChanged(int,int)), this, SLOT(SlotCellChanged(int,int)));
 }
 
 StudiesTable::~StudiesTable()
@@ -26,66 +27,59 @@ StudiesTable::~StudiesTable()
 
 
 
-void StudiesTable::UpdateTable(QList<Study*> studies, const QList<Study*>& allSelectedStudies)
+void StudiesTable::InsertTableRow(bool selected, const QString& date, const QString& time, const QString& modality)
 {
-    this->ClearTableContents();
+    this->disconnect(this, SIGNAL(cellChanged(int,int)), this, SLOT(SlotCellChanged(int,int)));
 
-    for(int i=0; i < studies.size(); ++i)
-    {
-        Study* tempStudy = studies.at(i);
+    int row = this->rowCount();
+    int col = 0;
 
-        this->insertRow(i);
-        this->setVerticalHeaderItem(i,NULL);
+    this->insertRow(row);
+    this->setVerticalHeaderItem(row,NULL);
 
-        QCheckBox* cb = new QCheckBox(this);
-        connect(cb, SIGNAL(toggled(bool)), this, SLOT(SlotTableCheckBoxClicked(bool)) );
+    QTableWidgetItem* checkBoxItem = new QTableWidgetItem();
 
-        if(allSelectedStudies.contains(tempStudy))
-            cb->setChecked(true);
-        else
-            cb->setChecked(false);
+    if(selected)
+        checkBoxItem->setCheckState(Qt::Checked);
+    else
+        checkBoxItem->setCheckState(Qt::Unchecked);
 
-        m_ListTableCheckBoxes.append(cb);
+    this->setItem(row,col++,checkBoxItem);
+    this->setItem(row,col++,new QTableWidgetItem(date));
+    this->setItem(row,col++,new QTableWidgetItem(time));
+    this->setItem(row,col++,new QTableWidgetItem(modality));
 
-        int col = 0;
+    this->connect(this, SIGNAL(cellChanged(int,int)), this, SLOT(SlotCellChanged(int,int)));
+}
 
-
-        this->setCellWidget(i,col++,cb);
-        this->setItem(i,col++,new QTableWidgetItem(tempStudy->GetDateStr()));
-        this->setItem(i,col++,new QTableWidgetItem(tempStudy->GetTimeStr()));
-        this->setItem(i,col++,new QTableWidgetItem(tempStudy->GetModalityStr()));
-
-    }
-
-
+void StudiesTable::CheckTableRow(int row)
+{
+    this->disconnect(this, SIGNAL(cellChanged(int,int)), this, SLOT(SlotCellChanged(int,int)));
+    this->item(row, 0)->setCheckState(Qt::Checked);
+    this->connect(this, SIGNAL(cellChanged(int,int)), this, SLOT(SlotCellChanged(int,int)));
 }
 
 void StudiesTable::ClearTableContents()
 {
+    this->clearContents();
 
-
-    int i;
-
-    for(i=0; i < m_ListTableCheckBoxes.size();++i)
-    {
-        m_ListTableCheckBoxes.at(i)->deleteLater();
-    }
-    m_ListTableCheckBoxes.clear();
-
-    for(;this->rowCount() > 0;)
+    while(this->rowCount() > 0)
     {
         this->removeRow(this->rowCount()-1);
     }
 }
 
 
-void StudiesTable::SlotTableCheckBoxClicked(bool toggled)
+void StudiesTable::SlotCellChanged(int row, int column)
 {
-    QCheckBox* senderCB = (QCheckBox*) QObject::sender();
-
-    for(int i=0; i < m_ListTableCheckBoxes.size(); ++i)
+    if(column == 0 && this->rowCount() > 0)
     {
-        if(m_ListTableCheckBoxes.at(i) == senderCB)
-            emit SignalStudySelected(i,toggled);
+        QTableWidgetItem* tempItem = this->item(row,column);
+
+        if(tempItem)
+        {
+            bool checked = tempItem->checkState() == Qt::Checked;
+            emit SignalStudySelected(row,checked);
+        }
     }
 }

@@ -1,29 +1,18 @@
 #include "study.h"
 
-Study::Study(Modality modality, const QDateTime &dateTime) :  m_StudyID(-1)
+Study::Study(Modality modality, const QDateTime &dateTime)
 {
     m_Modality = modality;
     m_DateTimeStudy = QDateTime(dateTime);
 
     m_ImageSeriesCT = new ImageSeries(ImageSeries::CT, dateTime);
-    m_ImageSeriesPET = new ImageSeries(ImageSeries::PET, dateTime.addSecs(3600));
+    m_ImageSeriesPET = new ImageSeries(ImageSeries::PET, dateTime);
 }
 
 Study::~Study()
 {
     delete m_ImageSeriesCT;
     delete m_ImageSeriesPET;
-}
-
-void Study::SetStudyID(int id)
-{
-    m_StudyID = id;
-}
-
-
-int Study::GetStudyID() const
-{
-    return m_StudyID;
 }
 
 const QDateTime& Study::GetStudyDateTime() const
@@ -36,7 +25,7 @@ const Study::Modality& Study::GetModality() const
     return m_Modality;
 }
 
-const ImageSeries* Study::GetImageSeries(ImageSeries::Modality modality) const
+ImageSeries *Study::GetImageSeries(ImageSeries::Modality modality) const
 {
     if(modality == ImageSeries::CT)
         return m_ImageSeriesCT;

@@ -1,7 +1,6 @@
 #include "imageseries.h"
 
-ImageSeries::ImageSeries(Modality modality, const QDateTime &dateTime) : m_ImageSeriesID(-1)
-
+ImageSeries::ImageSeries(Modality modality, const QDateTime &dateTime)
 {
     m_Modality = modality;
     m_DateTimeImageSeries = dateTime;
@@ -9,16 +8,6 @@ ImageSeries::ImageSeries(Modality modality, const QDateTime &dateTime) : m_Image
 
 ImageSeries::~ImageSeries()
 {
-}
-
-void ImageSeries::SetImageSeriesID(int id)
-{
-    m_ImageSeriesID = id;
-}
-
-int ImageSeries::GetImageSeriesID() const
-{
-    return m_ImageSeriesID;
 }
 
 const ImageSeries::Modality& ImageSeries::GetModality() const

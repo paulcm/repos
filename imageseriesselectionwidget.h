@@ -22,9 +22,13 @@ public:
     explicit ImageSeriesSelectionWidget(QList<Patient*>* patients, QWidget *parent = 0);
     ~ImageSeriesSelectionWidget(void);
     
-    void UpdatePatientsNamesListNodeComboBox(const QString& selected);
+    void UpdatePatientsNamesListNodeComboBox(Patient* currentPatient);
 
-    void UpdateStudiesTable(Patient* patient, const QList<Study*>& allSelectedStudies);
+    void UpdateStudiesTable(QList<Study*>* allPatientStudies, const QList<Study*>& selectedPatientStudies);
+
+    void LockPatientSelection(bool lock);
+
+    void UndoTableRowCheck(int row);
 
 signals:
 //    void SignalImageSeriesSelected(int idx);

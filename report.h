@@ -18,27 +18,19 @@ public:
 
     void AddFinding(Finding* finding);
 
-    void SetReportID(int id);
     void SetReportName(const QString& name);
     void SetPatient(Patient* patient);
 
-    int GetReportID();
     const QString& GetReportName();
 
     Patient* GetPatient();
-    const QList<Finding*>& GetFindings();
-    Finding* GetFinding(int findingID);
+    QList<Finding*>* GetFindings();
+    Finding* GetFinding(int idx);
 
 private:
-    int m_ReportID;
     QString m_StringReportName;
     Patient* m_Patient;
     QList<Finding*> m_ListFindings;
-
-    int m_FindingIDCounter;
-
-
-
 
 };
 

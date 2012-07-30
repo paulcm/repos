@@ -1,8 +1,7 @@
 #include "report.h"
 
-Report::Report(const QString& name) : m_ReportID(-1)
-  ,m_Patient(NULL)
-  ,m_FindingIDCounter(0)
+Report::Report(const QString& name) :
+    m_Patient(NULL)
 {
     m_StringReportName = name;
 }
@@ -20,11 +19,7 @@ Report::~Report()
 void Report::AddFinding(Finding* finding)
 {
     if(finding)
-    {
-        finding->SetFindingID(m_FindingIDCounter++);
-        m_ListFindings.append(finding);
-    }
-
+        m_ListFindings.prepend(finding);
 }
 
 void Report::SetReportName(const QString& name)
@@ -33,20 +28,11 @@ void Report::SetReportName(const QString& name)
 }
 
 
-void Report::SetReportID(int id)
-{
-    m_ReportID = id;
-}
-
 void Report::SetPatient(Patient *patient)
 {
     m_Patient = patient;
 }
 
-int Report::GetReportID()
-{
-    return m_ReportID;
-}
 
 const QString& Report::GetReportName()
 {
@@ -58,19 +44,17 @@ Patient* Report::GetPatient()
     return m_Patient;
 }
 
-const QList<Finding*>& Report::GetFindings()
+QList<Finding*>* Report::GetFindings()
 {
-    return m_ListFindings;
+    return &m_ListFindings;
 }
 
-Finding* Report::GetFinding(int findingID)
+Finding* Report::GetFinding(int idx)
 {
-    for(int i=0; i < m_ListFindings.size(); ++i)
-    {
-        if(m_ListFindings.at(i)->GetFindingID() == findingID)
-            return m_ListFindings.value(i);
-    }
+    if(idx >= 0 && idx < m_ListFindings.size())
+        return m_ListFindings.value(idx);
 
-    return NULL;
+    else
+        return NULL;
 }
 

@@ -6,6 +6,7 @@
 #include "segmentation.h"
 #include "imageseries.h"
 #include <QMap>
+#include <QDateTime>
 
 class Finding
 {
@@ -13,22 +14,19 @@ public:
     Finding(const QString& name);
     ~Finding();
 
-    void SetFindingID(int id);
+    void SetFindingName(const QString& name);
 
-    int GetFindingID();
     const QString& GetFindingName();
-    QList<Segmentation*> GetAllSegmentations() const;
 
-    Segmentation* GetSegmentation(ImageSeries* series) const;
+    QList<Segmentation*>* GetAllSegmentations();
+    QList<Segmentation*> GetSegmentations(const QDateTime& dateTime);
 
-    bool AddSegmentation(ImageSeries* series, Segmentation* segmentation);
-    bool RemoveSegmentation(ImageSeries* series);
+    bool AddSegmentation(Segmentation* segmentation);
+    bool RemoveSegmentation(Segmentation* segmentation);
 
 private:
-    int m_FindingID;
     QString m_StringFindingName;
-
-    QMap<ImageSeries*,Segmentation*> m_MapSegmentations;
+    QList<Segmentation*> m_ListSegmentations;
 };
 
 #endif // FINDING_H

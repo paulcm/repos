@@ -20,7 +20,6 @@ public:
     ~ReportSelectionWidget();
     
 signals:
-    void SignalClearReport();
     void SignalChangeReport(const QString& name);
     void SignalCreateNewReport(const QString& reportName);
     void SignalRenameReport(const QString& oldname, const QString& newname);
@@ -31,7 +30,6 @@ public slots:
 
 protected:
     QGridLayout* GetLayout();
-    QLabel* GetLabelInfo();
     QLabel* GetLabelSelect();
     NodeComboBox* GetNodeComboBoxSelectReport();
 
@@ -42,13 +40,8 @@ protected:
 protected slots:
    // void SlotReportSelectionComboBoxSelectionChanged(const QString& selected);
 
-    void SlotCreateReport();
-    void SlotRenameReport(const QString& oldname);
-    void SlotDeleteReport(const QString& name);
-
 private:
     QGridLayout* m_Layout;
-    QLabel* m_LabelInfo;
     QLabel* m_LabelSelect;
     NodeComboBox* m_NodeComboBoxSelectReport;
 

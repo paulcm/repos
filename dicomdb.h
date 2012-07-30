@@ -11,7 +11,7 @@ public:
     ~DICOMDB();
 
     QList<Patient*>* GetPatients();
-    const Patient* GetPatient(int patientID) const;
+    Patient* GetPatient(int idx);
 
     void AddPatient(Patient* patient);
 
