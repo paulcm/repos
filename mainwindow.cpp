@@ -397,9 +397,22 @@ void MainWindow::SlotImageSelectionStudySelected(int idx, bool selected)
 
 
     selectedPatientStudies = this->GetCurrentPatientsSelectedStudies();
+    int newidx = selectedPatientStudies.indexOf(tempStudy);
 
     if(selected)
+    {
         this->SetSelectedStudy(tempStudy);
+
+        std::cout << "MAX: " << selectedPatientStudies.size()-1 << std::endl;
+        std::cout << "SEL: " << newidx << std::endl;
+        std::cout << "LBL: " << tempStudy->GetDateTimeStr().toStdString() << std::endl;
+
+        if(selectedPatientStudies.size() > 1)
+            this->GetStudySliderWidget()->UpdateValues(selectedPatientStudies.size()-1,newidx,tempStudy->GetDateTimeStr());
+        else
+            this->GetStudySliderWidget()->UpdateValues(0,0,tempStudy->GetDateTimeStr());
+
+    }
     else
     {
         if(selectedPatientStudies.empty())
@@ -407,15 +420,10 @@ void MainWindow::SlotImageSelectionStudySelected(int idx, bool selected)
             this->SetSelectedStudy(NULL);
             this->GetStudySliderWidget()->UpdateValues();
         }
-        else if(selectedPatientStudies.size() == 1)
-        {
-            this->SetSelectedStudy(selectedPatientStudies.value(0));
-            this->GetStudySliderWidget()->UpdateValues(0,1,0,selectedPatientStudies.at(0)->GetDateTimeStr());
-        }
         else
         {
             this->SetSelectedStudy(selectedPatientStudies.value(--oldidx));
-            this->GetStudySliderWidget()->UpdateValues(0,selectedPatientStudies.size()-1,oldidx,selectedPatientStudies.at(oldidx)->GetDateTimeStr());
+            this->GetStudySliderWidget()->UpdateValues(selectedPatientStudies.size()-1,oldidx,selectedPatientStudies.at(oldidx)->GetDateTimeStr());
         }
     }
 
@@ -511,10 +519,18 @@ void MainWindow::SetSelectedStudy(Study* study)
 
     disconnect(this->GetStudySliderWidget(), SIGNAL(SignalSliderPositionChanged(int)), this, SLOT(SlotChangeStudyInView(int)));
 
-    this->SetSelectedSegmentation(m_SelectedSegmentation);
+    if(m_SelectedFinding && m_SelectedStudy)
+    {
+        if(!m_SelectedFinding->GetSegmentations(m_SelectedStudy->GetStudyDateTime()).isEmpty())
+            this->SetSelectedSegmentation(m_SelectedFinding->GetSegmentations(m_SelectedStudy->GetStudyDateTime()).value(0),true);
+        else
+            this->SetSelectedSegmentation(NULL,true);
+
+    }
+
 
     if(m_SelectedStudy)
-        this->GetStudySliderWidget()->UpdateValues(0,tempPatientSelectedStudies.size()-1,idx,study->GetDateTimeStr());
+        this->GetStudySliderWidget()->UpdateValues(tempPatientSelectedStudies.size()-1,idx,study->GetDateTimeStr());
 
     else
         this->GetStudySliderWidget()->UpdateValues();
@@ -530,6 +546,11 @@ void MainWindow::SetSelectedFinding(Finding* finding)
         return;
 
     m_SelectedFinding = finding;
+
+    if(!m_SelectedFinding)
+        this->GetFindingsWidget()->DisableEditor();
+    else
+        this->GetFindingsWidget()->EnableEditor(Finding::GetFindingTypeDescription(m_SelectedFinding->GetFindingType()),Finding::GetFindingTypeCssColor(m_SelectedFinding->GetFindingType()));
 
     if(m_SelectedFinding && ! m_SelectedFinding->GetSegmentations(m_SelectedStudy->GetStudyDateTime()).isEmpty())
         this->SetSelectedSegmentation(m_SelectedFinding->GetSegmentations(m_SelectedStudy->GetStudyDateTime()).value(0));
@@ -547,13 +568,10 @@ void MainWindow::SetSelectedSegmentation(Segmentation* segmentation, bool slider
 
     m_SelectedSegmentation = segmentation;
 
-    if(m_SelectedStudy && m_SelectedFinding)
-    {
-        if(m_SelectedFinding->GetSegmentations(m_SelectedStudy->GetStudyDateTime()).isEmpty())
-            this->GetFindingsWidget()->UpdateSegmentationNameListNodeComboBox(NULL, NULL);
-        else
-            this->GetFindingsWidget()->UpdateSegmentationNameListNodeComboBox(m_SelectedFinding,m_SelectedFinding->GetSegmentations(m_SelectedStudy->GetStudyDateTime()).value(0));
-    }
+    if(m_SelectedSegmentation)
+        this->GetFindingsWidget()->UpdateSegmentationNameListNodeComboBox(m_SelectedFinding, m_SelectedSegmentation);
+    else
+        this->GetFindingsWidget()->UpdateSegmentationNameListNodeComboBox(m_SelectedFinding, m_SelectedFinding->GetSegmentations(m_SelectedStudy->GetStudyDateTime()).value(0));
 }
 
 
@@ -670,11 +688,15 @@ void MainWindow::SlotFindingCreate(const QString& name)
     if(this->GetFindingsColorMapDialog()->GetApplied())
     {
 
-    Finding* finding = new Finding(name);
-    m_SelectedReport->AddFinding(finding);
-    this->GetImageSeriesSelectionWidget()->LockPatientSelection(true);
+        Finding::FindingType type = Finding::FindingType(this->GetFindingsColorMapDialog()->GetSelectedLabelColor());
 
-    this->SetSelectedFinding(finding);
+        Finding* finding = new Finding(name, type);
+        m_SelectedReport->AddFinding(finding);
+        this->GetImageSeriesSelectionWidget()->LockPatientSelection(true);
+
+        this->SetSelectedFinding(finding);
+
+        this->GetFindingsWidget()->EnableEditor(Finding::GetFindingTypeDescription(type),Finding::GetFindingTypeCssColor(type));
 
     }
     if(m_SelectedFinding)

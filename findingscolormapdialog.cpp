@@ -1,15 +1,23 @@
 #include "findingscolormapdialog.h"
 
+#include "separator.h"
+
 FindingsColorMapDialog::FindingsColorMapDialog(QWidget *parent) :
     QDialog(parent)
   ,m_Layout(NULL)
-  ,m_LabelInfo(NULL)
+  ,m_LabelMapInfo(NULL)
+  ,m_LabelColorInfo(NULL)
   ,m_ComboBoxColorMap(NULL)
+  ,m_ComboBoxLabelColors(NULL)
   ,m_ButtonApply(NULL)
   ,m_ButtonCancel(NULL)
   ,m_Applied(false)
 {
     m_IconColorMap.addPixmap(QPixmap(":/resources/colormap.png"));
+    m_IconColorTumor.addPixmap(QPixmap(":/resources/colormap_tumor.png"));
+    m_IconColorNode.addPixmap(QPixmap(":/resources/colormap_node.png"));
+    m_IconColorMetastasis.addPixmap(QPixmap(":/resources/colormap_metastasis.png"));
+    m_IconColorReference.addPixmap(QPixmap(":/resources/colormap_reference.png"));
 
     this->InitializeDialog();
 }
@@ -25,10 +33,17 @@ void FindingsColorMapDialog::InitializeDialog()
 
     if(initialized == false)
     {
-        this->GetLayout()->addWidget(this->GetLabelInfo(),0,0,1,2);
-        this->GetLayout()->addWidget(this->GetComboBoxColorMap(),1,0,1,2);
-        this->GetLayout()->addWidget(this->GetButtonApply(),2,0,1,1);
-        this->GetLayout()->addWidget(this->GetButtonCancel(),2,1,1,1);
+        this->GetLayout()->addWidget(this->GetLabelMapInfo(),0,0,1,1);
+        this->GetLayout()->addWidget(this->GetComboBoxColorMap(),0,1,1,2);
+
+        this->GetLayout()->addWidget(new Separator(this),1,0,1,3);
+
+        this->GetLayout()->addWidget(this->GetLabelColorInfo(),2,0,1,1);
+        this->GetLayout()->addWidget(this->GetComboBoxLabelColors(),2,1,1,2);
+
+
+        this->GetLayout()->addWidget(this->GetButtonApply(),3,1,1,1);
+        this->GetLayout()->addWidget(this->GetButtonCancel(),3,2,1,1);
 
         this->GetLayout()->setMargin(20);
         this->GetLayout()->setSpacing(20);
@@ -65,15 +80,24 @@ QGridLayout* FindingsColorMapDialog::GetLayout()
     return m_Layout;
 }
 
-QLabel* FindingsColorMapDialog::GetLabelInfo()
+QLabel* FindingsColorMapDialog::GetLabelMapInfo()
 {
-    if(m_LabelInfo == NULL)
+    if(m_LabelMapInfo == NULL)
     {
-        m_LabelInfo = new QLabel("Select a color table and Apply. In the next step please center the ROI for the Finding by clicking one time to place it's center and a second time to determine it's size", this);
-        m_LabelInfo->setWordWrap(true);
+        m_LabelMapInfo = new QLabel("Select color table:", this);
     }
 
-    return m_LabelInfo;
+    return m_LabelMapInfo;
+}
+
+QLabel* FindingsColorMapDialog::GetLabelColorInfo()
+{
+    if(m_LabelColorInfo == NULL)
+    {
+        m_LabelColorInfo = new QLabel("Select type of Finding:", this);
+    }
+
+    return m_LabelColorInfo;
 }
 
 QComboBox* FindingsColorMapDialog::GetComboBoxColorMap()
@@ -85,6 +109,20 @@ QComboBox* FindingsColorMapDialog::GetComboBoxColorMap()
     }
 
     return m_ComboBoxColorMap;
+}
+
+QComboBox* FindingsColorMapDialog::GetComboBoxLabelColors()
+{
+    if(m_ComboBoxLabelColors == NULL)
+    {
+        m_ComboBoxLabelColors = new QComboBox(this);
+        m_ComboBoxLabelColors->addItem(m_IconColorTumor,"Tumor");
+        m_ComboBoxLabelColors->addItem(m_IconColorNode,"Node");
+        m_ComboBoxLabelColors->addItem(m_IconColorMetastasis,"Metastasis");
+        m_ComboBoxLabelColors->addItem(m_IconColorReference,"Reference");
+    }
+
+    return m_ComboBoxLabelColors;
 }
 
 QPushButton* FindingsColorMapDialog::GetButtonApply()
@@ -107,6 +145,11 @@ QPushButton* FindingsColorMapDialog::GetButtonCancel()
     }
 
     return m_ButtonCancel;
+}
+
+int FindingsColorMapDialog::GetSelectedLabelColor()
+{
+    return this->GetComboBoxLabelColors()->currentIndex();
 }
 
 

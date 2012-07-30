@@ -19,5 +19,16 @@
         <file>resources/scene6.png</file>
         <file>resources/scene7.png</file>
         <file>resources/colormap.png</file>
+        <file>resources/editor/DefaultTool.png</file>
+        <file>resources/editor/Draw.png</file>
+        <file>resources/editor/EraseLabel.png</file>
+        <file>resources/editor/Paint.png</file>
+        <file>resources/editor/Threshold.png</file>
+        <file>resources/editor/NextCheckPoint.png</file>
+        <file>resources/editor/PreviousCheckPoint.png</file>
+        <file>resources/colormap_metastasis.png</file>
+        <file>resources/colormap_node.png</file>
+        <file>resources/colormap_reference.png</file>
+        <file>resources/colormap_tumor.png</file>
     </qresource>
 </RCC>

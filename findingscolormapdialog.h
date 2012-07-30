@@ -19,6 +19,8 @@ public:
     bool GetApplied();
     void SetApplied(bool applied);
 
+    int GetSelectedLabelColor();
+
 signals:
     void SignalApply();
     void SignalClose();
@@ -28,8 +30,10 @@ protected slots:
 
 protected:
     QGridLayout* GetLayout();
-    QLabel* GetLabelInfo();
+    QLabel* GetLabelMapInfo();
+    QLabel* GetLabelColorInfo();
     QComboBox* GetComboBoxColorMap();
+    QComboBox* GetComboBoxLabelColors();
     QPushButton* GetButtonApply();
     QPushButton* GetButtonCancel();
 
@@ -37,12 +41,18 @@ protected:
 
 private:
     QGridLayout* m_Layout;
-    QLabel* m_LabelInfo;
+    QLabel* m_LabelMapInfo;
+    QLabel* m_LabelColorInfo;
     QComboBox* m_ComboBoxColorMap;
+    QComboBox* m_ComboBoxLabelColors;
     QPushButton* m_ButtonApply;
     QPushButton* m_ButtonCancel;
     
     QIcon m_IconColorMap;
+    QIcon m_IconColorTumor;
+    QIcon m_IconColorNode;
+    QIcon m_IconColorMetastasis;
+    QIcon m_IconColorReference;
 
     bool m_Applied;
 

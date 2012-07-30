@@ -26,7 +26,8 @@ SOURCES += main.cpp\
     studiestable.cpp \
     separator.cpp \
     findingswidget.cpp \
-    findingscolormapdialog.cpp
+    findingscolormapdialog.cpp \
+    editorwidget.cpp
 
 HEADERS  += mainwindow.h \
     patient.h \
@@ -45,6 +46,7 @@ HEADERS  += mainwindow.h \
     studiestable.h \
     separator.h \
     findingswidget.h \
-    findingscolormapdialog.h
+    findingscolormapdialog.h \
+    editorwidget.h
 
 RESOURCES  = resources.qrc

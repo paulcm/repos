@@ -26,7 +26,7 @@ signals:
     void SignalSliderPositionChanged(int idx);
     
 public slots:
-    void UpdateValues(int min = 0, int max = 1, int selected = 0, QString label = "");
+    void UpdateValues(int max = 0, int selected = 0, QString label = "");
 
 protected:
     void InitializeWidget();

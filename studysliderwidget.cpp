@@ -17,12 +17,23 @@ StudySliderWidget::~StudySliderWidget()
 }
 
 
-void StudySliderWidget::UpdateValues(int min, int max, int selected, QString label)
+void StudySliderWidget::UpdateValues(int max, int selected, QString label)
 {
-    if(selected < min || selected > max)
+    if(selected < 0 || selected > max)
         return;
 
-    this->GetSliderStudySelector()->setMinimum(min);
+
+
+    if(max == 0)
+    {
+        this->GetSliderStudySelector()->setDisabled(true);
+        max++;
+    }
+    else
+        this->GetSliderStudySelector()->setEnabled(true);
+
+
+    this->GetSliderStudySelector()->setMinimum(0);
     this->GetSliderStudySelector()->setMaximum(max);
     this->GetSliderStudySelector()->setValue(selected);
     this->GetLabelSelectedStudy()->setText(label);

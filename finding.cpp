@@ -1,8 +1,10 @@
 #include "finding.h"
 
-Finding::Finding(const QString& name)
+Finding::Finding(const QString& name, FindingType type)
 {
     m_StringFindingName = name;
+    m_Type = type;
+
 }
 
 Finding::~Finding()
@@ -13,6 +15,47 @@ Finding::~Finding()
     }
 
     m_ListSegmentations.clear();
+}
+
+
+QString Finding::GetFindingTypeDescription(const FindingType& type)
+{
+    switch(type)
+    {
+    case TUMOR:
+        return QString("Tumor");
+    case NODE:
+        return QString("Lymph Node");
+    case METASTASIS:
+        return QString("Metastasis");
+    case REFERENCE:
+        return QString("Reference");
+    }
+
+    return QString();
+}
+
+QString Finding::GetFindingTypeCssColor(const FindingType& type)
+{
+    switch(type)
+    {
+    case TUMOR:
+        return QString("background-color: #dcf400");
+    case NODE:
+        return QString("background-color: #41ac63");
+    case METASTASIS:
+        return QString("background-color: #8eee8e");
+    case REFERENCE:
+        return QString("background-color: #df8265");
+    }
+
+    return QString();
+}
+
+
+Finding::FindingType Finding::GetFindingType()
+{
+    return m_Type;
 }
 
 void Finding::SetFindingName(const QString& name)
@@ -56,7 +99,7 @@ bool Finding::AddSegmentation(Segmentation *segmentation)
         return false;
 
 
-    m_ListSegmentations.append(segmentation);
+    m_ListSegmentations.prepend(segmentation);
 
     return true;
 }

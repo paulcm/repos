@@ -7,6 +7,7 @@ FindingsWidget::FindingsWidget(QList<Finding *>* findings, QWidget *parent) :
   ,m_LabelSelectSegmentation(NULL)
   ,m_NodeComboBoxSelectFinding(NULL)
   ,m_NodeComboBoxSelectSegmentation(NULL)
+  ,m_EditorWidget(NULL)
 {
     m_FindingsPtr = findings;
 
@@ -34,7 +35,8 @@ void FindingsWidget::InitializeWidget()
         this->GetLayout()->addWidget(new Separator(this),1,0,1,2);
         this->GetLayout()->addWidget(this->GetLabelSelectSegmentation(),2,0);
         this->GetLayout()->addWidget(this->GetNodeComboBoxSelectSegmentation(),2,1);
-
+        this->GetLayout()->addWidget(new Separator(this),3,0,1,2);
+        this->GetLayout()->addWidget(this->GetEditorWidget(),4,0,1,2);
         this->GetLayout()->setColumnStretch(1,2);
 
         this->setLayout(this->GetLayout());
@@ -60,6 +62,19 @@ QLabel* FindingsWidget::GetLabelSelectFinding()
     }
 
     return m_LabelSelectFinding;
+}
+
+void FindingsWidget::EnableEditor(const QString& findingType, const QString& cssColor)
+{
+    this->GetEditorWidget()->SetFindingType(findingType);
+    this->GetEditorWidget()->SetLabelColorStyleSheet(cssColor);
+
+    this->GetEditorWidget()->setEnabled(true);
+}
+
+void FindingsWidget::DisableEditor()
+{
+    this->GetEditorWidget()->setDisabled(true);
 }
 
 QLabel* FindingsWidget::GetLabelSelectSegmentation()
@@ -95,11 +110,12 @@ NodeComboBox* FindingsWidget::GetNodeComboBoxSelectSegmentation()
     {
         m_NodeComboBoxSelectSegmentation = new NodeComboBox("Segmentation",this->UpdateSegmentationNamesList(NULL,QDateTime::currentDateTime()),this);
 
-        connect(m_NodeComboBoxSelectSegmentation, SIGNAL(SignalCreate(QString)), this, SIGNAL(SignalCreateNewSegmentation(QString)) );
+        //connect(m_NodeComboBoxSelectSegmentation, SIGNAL(SignalCreate(QString)), this, SIGNAL(SignalCreateNewSegmentation(QString)) );
         connect(m_NodeComboBoxSelectSegmentation, SIGNAL(SignalDelete(QString)), this, SIGNAL(SignalDeleteSegmentation(QString)) );
         connect(m_NodeComboBoxSelectSegmentation, SIGNAL(SignalRename(QString,QString)), this, SIGNAL(SignalRenameSegmentation(QString,QString)) );
         connect(m_NodeComboBoxSelectSegmentation, SIGNAL(SignalSelected(QString)), this, SIGNAL(SignalChangeSegmentation(QString)) );
 
+        m_NodeComboBoxSelectSegmentation->HideOperator(NodeComboBox::CREATE);
         m_NodeComboBoxSelectSegmentation->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
     }
 
@@ -171,4 +187,17 @@ void FindingsWidget::UpdateSegmentationNameListNodeComboBox(Finding* currentFind
         else
             this->GetNodeComboBoxSelectSegmentation()->Update();
     }
+}
+
+
+EditorWidget* FindingsWidget::GetEditorWidget()
+{
+    if(m_EditorWidget == NULL)
+    {
+        m_EditorWidget = new EditorWidget(this);
+
+        connect(m_EditorWidget, SIGNAL(SignalCreateNewSegmentation(QString)), this, SIGNAL(SignalCreateNewSegmentation(QString)));
+    }
+
+    return m_EditorWidget;
 }

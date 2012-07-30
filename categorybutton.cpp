@@ -11,7 +11,7 @@ CategoryButton::CategoryButton(const QString& text, QWidget *parent) :
 
     this->setIcon(m_IconClosed);
     this->setStyleSheet("text-align: left; padding-left: 5px;");
-    this->setMaximumHeight(24);
+    this->setFixedHeight(24);
 
     connect( this, SIGNAL(clicked()), this, SLOT(SlotClicked()) );
 }

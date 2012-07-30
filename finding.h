@@ -11,10 +11,22 @@
 class Finding
 {
 public:
-    Finding(const QString& name);
+    enum FindingType
+    {
+        TUMOR = 0,
+        NODE = 1,
+        METASTASIS = 2,
+        REFERENCE = 3
+    };
+
+    static QString GetFindingTypeDescription(const FindingType& type);
+    static QString GetFindingTypeCssColor(const FindingType& type);
+
+    Finding(const QString& name, FindingType type);
     ~Finding();
 
     void SetFindingName(const QString& name);
+    FindingType GetFindingType();
 
     const QString& GetFindingName();
 
@@ -27,6 +39,7 @@ public:
 private:
     QString m_StringFindingName;
     QList<Segmentation*> m_ListSegmentations;
+    FindingType m_Type;
 };
 
 #endif // FINDING_H
