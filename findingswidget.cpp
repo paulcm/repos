@@ -40,6 +40,8 @@ void FindingsWidget::InitializeWidget()
         this->GetLayout()->setColumnStretch(1,2);
 
         this->setLayout(this->GetLayout());
+
+        initialized = true;
     }
 }
 

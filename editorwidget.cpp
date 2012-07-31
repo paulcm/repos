@@ -78,6 +78,8 @@ void EditorWidget::InitializeWidget()
         connect(this->GetSpinBoxRight(),SIGNAL(valueChanged(int)),this->GetSliderThresholdRight(),SLOT(setValue(int)));
         connect(this->GetSliderThresholdLeft(), SIGNAL(valueChanged(int)), this->GetSpinBoxLeft(),SLOT(setValue(int)));
         connect(this->GetSliderThresholdRight(), SIGNAL(valueChanged(int)), this->GetSpinBoxRight(),SLOT(setValue(int)));
+
+        initialized = true;
     }
 }
 
@@ -200,7 +202,7 @@ QPushButton* EditorWidget::GetButtonAddToFinding()
 {
     if(m_ButtonAddToFinding == NULL)
     {
-        m_ButtonAddToFinding = new QPushButton("Add to current Finding",this);
+        m_ButtonAddToFinding = new QPushButton("Add Segmentation to current Finding",this);
         m_ButtonAddToFinding->setFixedHeight(24);
 
         connect(m_ButtonAddToFinding,SIGNAL(clicked()), this, SLOT(SlotAddSegmentationClicked()));

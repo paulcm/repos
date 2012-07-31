@@ -10,6 +10,7 @@ StudySliderWidget::StudySliderWidget(QWidget *parent) :
   ,m_SliderStudySelector(NULL)
 {
     this->InitializeWidget();
+    this->GetLayout()->setMargin(0);
 }
 
 StudySliderWidget::~StudySliderWidget()
@@ -96,7 +97,7 @@ QSlider* StudySliderWidget::GetSliderStudySelector()
     if(m_SliderStudySelector == NULL)
     {
         m_SliderStudySelector = new QSlider(Qt::Horizontal, this);
-        m_SliderStudySelector->setTickPosition(QSlider::TicksBelow);
+        m_SliderStudySelector->setTickPosition(QSlider::TicksBothSides);
         m_SliderStudySelector->setMinimum(0);
 
         m_SliderStudySelector->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);

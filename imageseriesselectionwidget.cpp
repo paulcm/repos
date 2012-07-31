@@ -39,6 +39,8 @@ void ImageSeriesSelectionWidget::InitializeWidget()
         this->GetLayout()->addWidget(this->GetStudiesTable(),3,0);
 
         this->setLayout(this->GetLayout());
+
+        initialized = true;
     }
 }
 

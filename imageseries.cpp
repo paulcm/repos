@@ -27,7 +27,7 @@ QString ImageSeries::GetDateTimeStr() const
 
 QString ImageSeries::GetDateStr() const
 {
-    return m_DateTimeImageSeries.date().toString("yyyy.MM.dd");
+    return m_DateTimeImageSeries.date().toString("MM/dd/yy");
 }
 
 QString ImageSeries::GetTimeStr() const

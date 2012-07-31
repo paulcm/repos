@@ -49,6 +49,8 @@ void FindingsColorMapDialog::InitializeDialog()
         this->GetLayout()->setSpacing(20);
 
         this->setLayout(this->GetLayout());
+
+        initialized = true;
     }
 }
 

@@ -28,6 +28,8 @@
 #include "reportselectionwidget.h"
 #include "imageseriesselectionwidget.h"
 #include "findingswidget.h"
+#include "reporttree.h"
+#include "analysiswidget.h"
 
 #include "findingscolormapdialog.h"
 
@@ -54,6 +56,8 @@ protected:
     ReportSelectionWidget* GetReportSelectionWidget();
     ImageSeriesSelectionWidget* GetImageSeriesSelectionWidget();
     FindingsWidget* GetFindingsWidget();
+    AnalysisWidget* GetAnalysisWidget();
+    ReportTree* GetReportTree();
 
     FindingsColorMapDialog* GetFindingsColorMapDialog();
 
@@ -85,20 +89,32 @@ protected slots:
     void SlotImageSelectionPatientChanged(const QString& name);
     void SlotImageSelectionStudySelected(int idx, bool selected);
 
+    void SlotReportTreeClicked(const QString& positionCode);
+
+    void SlotAnaylsisShowReportSummaryDialog();
+    void SlotAnalysisAddStudy(int studyIdx);
+    void SlotAnaylsisRemoveStudy(int studyIdx);
+    void SlotAnalysisQuantitativeSelected();
+    void SlotAnalysisQualitativeSelected();
+
+
     Report* GetReportByName(const QString& name);
     Finding* GetFindingByName(const QString& name);
     Segmentation* GetSegmentationByName(const QString& name);
 
-    void SetSelectedReport(Report* report);
+    void SetSelectedReport(Report* report, bool renamed = false);
     void SetSelectedPatient(Patient* patient, bool reportChanged = false);
     void SetSelectedStudy(Study* study);
-    void SetSelectedFinding(Finding* finding);
-    void SetSelectedSegmentation(Segmentation* segmentation, bool sliderChanged = false);
+    void SetSelectedFinding(Finding* finding, bool renamed = false, bool updateTree = true);
+    void SetSelectedSegmentation(Segmentation* segmentation, bool sliderChanged = false, bool renamed = false, bool updateTree = true);
 
     QList<Study*> GetCurrentPatientsSelectedStudies();
     QList<QString> GetCurrentPatientsSelectedStudyDates();
 
     bool RemoveCurrentReportsSegmentationsForStudy(Study* study);
+
+    void UpdateTree();
+
 
 
 private:
@@ -122,6 +138,8 @@ private:
     ReportSelectionWidget* m_ReportSelectionWidget;
     ImageSeriesSelectionWidget* m_ImageSeriesSelectionWidget;
     FindingsWidget* m_FindingsWidget;
+    AnalysisWidget* m_AnalysisWidget;
+    ReportTree* m_ReportTree;
     StudySliderWidget* m_StudySliderWidget;
 
     FindingsColorMapDialog* m_FindingsColorMapDialog;
